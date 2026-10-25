@@ -175,9 +175,8 @@ function drawDerrick(R, t) {
 // ship drawn in local pixel units: put(dx, dy, w, h, colour) relative to the nose tip
 function drawShipLocal(put, st, t, flame) {
   const hwAt = r => r < 2 ? 1 : r < 4 ? 2 : r < 6 ? 3 : 4;
-  if (st < 2) {
-    const ph = Math.floor(t * 4);
-    for (let r = 0; r < 26; r++) { if ((r + ph) % 2) continue; const hw = hwAt(r); put(-hw, r, 1, 1, 'c'); put(hw - 1, r, 1, 1, 'c'); }
+  if (st < 2) { // static dashed blueprint outline: no animation, so the shape stays still
+    for (let r = 0; r < 26; r += 2) { const hw = hwAt(r); put(-hw, r, 1, 1, 'c'); put(hw - 1, r, 1, 1, 'c'); }
     for (let k = 0; k < 6; k += 2) { put(-5 - (k >> 1), 20 + k, 1, 1, 'c'); put(4 + (k >> 1), 20 + k, 1, 1, 'c'); }
     put(-2, 26, 4, 1, 'c');
     return;
@@ -300,10 +299,19 @@ function sceneHull(sc, t, k) {
   cachedSky(sc, 'hull', ['k', 'n', 'p', 'r'], 1.6, hz);
   ridge(R, w, hz, 8, 21, 'm', h); R(0, hz, w, h - hz, 'k');
   const sc2 = Math.max(2, Math.round(h / 70)), cx = w >> 1, top = hz - 30 * sc2 - 2;
+  // drafting sheet: a faint grid and corner brackets frame the outline as a technical drawing
+  const fx0 = cx - 18 * sc2, fx1 = cx + 18 * sc2, fy0 = top - 6 * sc2, fy1 = hz - 4, step = 3 * sc2;
+  for (let x = fx0; x <= fx1; x += step) for (let y = fy0; y <= fy1; y += 2) R(x, y, 1, 1, 'n');
+  for (let y = fy0; y <= fy1; y += step) for (let x = fx0; x <= fx1; x += 2) R(x, y, 1, 1, 'n');
+  const br = 4 * sc2;
+  [[fx0, fy0, 1, 1], [fx1, fy0, -1, 1], [fx0, fy1, 1, -1], [fx1, fy1, -1, -1]].forEach(([x, y, dx, dy]) => {
+    R(dx > 0 ? x : x - br + 1, y, br, 1, 'c'); R(x, dy > 0 ? y : y - br + 1, 1, br, 'c');
+  });
   R(cx - 14 * sc2, hz - 2, 28 * sc2, 2, 'd');
   for (let x = cx - 14 * sc2; x < cx + 14 * sc2; x += 4) R(x, hz - 2, 2, 1, 'y');
   drawShipLocal((dx, dy, ww, hh, col) => R(cx + dx * sc2, top + dy * sc2, ww * sc2, hh * sc2, col), 0, t, 0);
   const gx = cx - 12 * sc2; for (let y = hz - 32 * sc2; y < hz - 2; y += 3) R(gx, y, 3, 1, 'o');
+  R(gx + 1, hz - 33 * sc2, 2, 2, Math.floor(t * 1.6) % 2 ? 'r' : 'k'); // gantry lamp is the only thing that blinks
 }
 function sceneRig(sc, t, k) {
   const { w, h } = sc.st, R = sc.R, gl = Math.round(h * 0.38);
