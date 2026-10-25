@@ -4,7 +4,7 @@ An incremental drilling game for the browser. Kessra's old sun is swelling and t
 gone. You are the last driller at Deepcore Camp: dig through layer after layer of rock for rare minerals,
 excavate buried treasure, and ship the ore to build the **Meridian**, the last ship off the planet.
 
-**Play:** https://OWNER.github.io/deepcore/ (8-Bit edition) · [Classic edition](https://OWNER.github.io/deepcore/classic.html)
+**Play:** https://ishino.github.io/deepcore/ (8-Bit edition) · [Classic edition](https://ishino.github.io/deepcore/classic.html)
 
 ## How it plays
 
