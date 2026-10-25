@@ -83,7 +83,7 @@ function drawTreasure(now, cx, headY, dtF) {
   }
   for (let i = 0; i < barW; i++) cell(bx0 + i, locked ? 12 : 14, i < Math.ceil(barW * frac) ? (frac < 0.25 ? 'o' : 'y') : 'm');
   // label (and the tool it needs) on the crisp text layer
-  ctx.textAlign = 'center'; ctx.font = '18px "VT323", monospace';
+  ctx.textAlign = 'center'; ctx.font = '21px "VT323", monospace';
   const lines = [[d.name.toUpperCase(), d.color, y - 12 * p]];
   if (locked) lines.push(['NEEDS ' + TOOL_NAMES[d.tier].toUpperCase(), '#ef7d57', y + 17 * p + 10]);
   for (const [txt, col, ly] of lines) {

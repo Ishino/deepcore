@@ -41,6 +41,10 @@ function pixelLayer(canvas, textCanvas) {
   const TEXT = new Set(['fillText', 'strokeText', 'measureText']);
   const ctx = new Proxy({}, {
     get(_, k) {
+      if (k === 'fillText') return (str, x, y) => { // every canvas label gets a dark outline so it reads on any rock
+        txt.save(); txt.lineJoin = 'round'; txt.lineWidth = 4; txt.strokeStyle = 'rgba(26,28,44,.92)'; txt.strokeText(str, x, y); txt.restore();
+        txt.fillText(str, x, y);
+      };
       if (TEXT.has(k)) return txt[k].bind(txt);
       if (BOTH.has(k)) return (...a) => { base[k](...a); txt[k](...a); };
       const v = base[k]; return typeof v === 'function' ? v.bind(base) : v;
@@ -158,7 +162,7 @@ ${camp}
 /* ---------- boot ---------- */`);
 rep(`c.arc(st.x * W2, st.y * H2 * 0.72, st.r, 0, 7)`, `c.arc(st.x * W2, st.y * H2 * 0.72, 1.2 + st.r, 0, 7)`);
 let nFont = 0;
-s = s.replace(/'(?:600 )?(\d+)px "JetBrains Mono", Consolas, monospace'/g, (m, px) => { nFont++; return `'${Math.round(+px * 1.6)}px "VT323", monospace'`; });
+s = s.replace(/'(?:600 )?(\d+)px "JetBrains Mono", Consolas, monospace'/g, (m, px) => { nFont++; return `'${Math.round(+px * 1.8)}px "VT323", monospace'`; });
 
 /* ---------- boot: hold the simulation behind the title screen ---------- */
 rep(`setInterval(() => { const now = performance.now(); tick(Math.min(60, (now - last) / 1000), false); last = now; }, 100);`,
