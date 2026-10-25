@@ -11,6 +11,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Pixelify+Sans:wght@400;500;600;700&family=VT323&display=swap">
+<!-- digits only (U+30-39): Pixelify Sans' 2 and 5 read like 8 at body sizes, so numbers in body text use Tiny5 -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&text=0123456789&display=swap">
 <style>
 /* Layout: a portrait handheld screen. Surface camp strip on top (buildings open menus), borehole in the middle,
    console bar with meters, actions and a building hotbar at the bottom. Menus open as RPG dialog windows.
@@ -21,7 +23,7 @@
   --ground:var(--k); --panel:#262b44; --panel-2:var(--m); --line:var(--d); --ink:var(--w); --muted:var(--s);
   --hazard:var(--y); --hazard-ink:var(--k); --shard:var(--a); --good:var(--l); --cool:var(--c); --epic:#c86bd6; --bad:var(--o);
   --f-display:'Press Start 2P','Courier New',monospace;
-  --f-body:'Pixelify Sans','Courier New',monospace;
+  --f-body:'Tiny5','Pixelify Sans','Courier New',monospace;
   --f-mono:'VT323','Courier New',monospace;
   --bevel:inset -3px -3px 0 rgba(0,0,0,.35),inset 3px 3px 0 rgba(255,255,255,.16);
   color-scheme:dark;
