@@ -8,7 +8,7 @@ const root = path.join(__dirname, '..');
 const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 
 const game = read('src/game.html');
-const pixel = pixelize(game, read('src/pixel/shell.html'), read('src/pixel/camp.js'));
+const pixel = pixelize(game, read('src/pixel/shell.html'), read('src/pixel/camp.js'), read('src/pixel/treasure.js'));
 
 // 8×8 pixel pickaxe favicon
 const ICON = ['.yyyyy..', 'yk...ss.', '....sk..', '...3....', '..3.....', '.3......', '3.......', '........'];

@@ -1,6 +1,6 @@
 // Builds the 8-bit edition: the pixel shell (layout + styles) + the classic game's script, adapted.
 // The classic game (src/game.html) stays the single source of game logic and balance.
-module.exports = function pixelize(html, shell, camp) {
+module.exports = function pixelize(html, shell, camp, treasure) {
 let s = html.slice(html.indexOf('<script>') + 8, html.lastIndexOf('</script>'));
 const rep = (a, b) => { const n = s.split(a).length - 1; if (n !== 1) throw new Error((n ? 'pixelize: not unique (' + n + '): ' : 'pixelize: missing: ') + a.slice(0, 110)); s = s.replace(a, () => b); };
 
@@ -62,6 +62,7 @@ function pixelLayer(canvas, textCanvas) {
       textCanvas.width = Math.round(cssW * dpr); textCanvas.height = Math.round(cssH * dpr);
       txt.setTransform(dpr, 0, 0, dpr, 0, 0);
     },
+    get pix() { return st.pix; },
     begin() { txt.save(); txt.setTransform(1, 0, 0, 1, 0, 0); txt.clearRect(0, 0, textCanvas.width, textCanvas.height); txt.restore(); },
     end() { quantize(base, st.w, st.h); },
   };
@@ -89,6 +90,12 @@ function rockShades(s) {
 
 /* ---------- canvas ---------- */
 const cv = $('#cv'), PL = pixelLayer(cv, $('#cvText')), ctx = PL.ctx;`);
+// buried treasure as pixel-art sprites snapped to the buffer grid (one cell = one real pixel)
+{
+  const before = s;
+  s = s.replace(/function drawTreasure\(now, cx, headY, dtF\) \{[\s\S]*?\n\}\nfunction spawnDebris\(\) \{/, () => `${treasure}\nfunction spawnDebris() {`);
+  if (s === before) throw new Error('pixelize: drawTreasure not found');
+}
 // hand-picked pixel-art rock colours for the twelve named formations (generated ones snap to their own shades)
 rep(`const BASE_N = STRATA.length;`, `['#5a3a2b', '#c49a6c', '#9c9178', '#4a5068', '#8c6f73', '#2e3340', '#6c6478', '#3a5248', '#566b3c', '#6e3b46', '#6a3220', '#8a2f1a']
   .forEach((c, i) => { STRATA[i].color = c; });
