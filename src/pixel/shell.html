@@ -1,0 +1,481 @@
+<title>Deepcore 8-Bit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Pixelify+Sans:wght@400;500;600;700&family=VT323&display=swap">
+<style>
+/* Layout: a portrait handheld screen. Surface camp strip on top (buildings open menus), borehole in the middle,
+   console bar with meters, actions and a building hotbar at the bottom. Menus open as RPG dialog windows.
+   Palette: Sweetie 16 plus four earth tones; the borehole canvas is dithered down to it every frame. */
+:root{
+  --k:#1a1c2c; --p:#5d275d; --r:#b13e53; --o:#ef7d57; --y:#ffcd75; --l:#a7f070; --g:#38b764; --t:#257179;
+  --n:#29366f; --b:#3b5dc9; --c:#41a6f6; --a:#73eff7; --w:#f4f4f4; --s:#94b0c2; --d:#566c86; --m:#333c57;
+  --ground:var(--k); --panel:#262b44; --panel-2:var(--m); --line:var(--d); --ink:var(--w); --muted:var(--s);
+  --hazard:var(--y); --hazard-ink:var(--k); --shard:var(--a); --good:var(--l); --cool:var(--c); --epic:#c86bd6; --bad:var(--o);
+  --f-display:'Press Start 2P','Courier New',monospace;
+  --f-body:'Pixelify Sans','Courier New',monospace;
+  --f-mono:'VT323','Courier New',monospace;
+  --bevel:inset -3px -3px 0 rgba(0,0,0,.35),inset 3px 3px 0 rgba(255,255,255,.16);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{height:100%}
+body{margin:0;color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.35;
+  background-color:#0d0e18;background-image:linear-gradient(45deg,#15172a 25%,transparent 25%,transparent 75%,#15172a 75%),linear-gradient(45deg,#15172a 25%,transparent 25%,transparent 75%,#15172a 75%);
+  background-size:4px 4px;background-position:0 0,2px 2px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--y);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.pxi{width:16px;height:16px;display:inline-block;vertical-align:-3px;flex:none}
+
+/* ---------- handheld frame ---------- */
+.game{max-width:820px;margin:0 auto;height:100%;min-height:560px;display:flex;flex-direction:column;background:var(--k);box-shadow:0 0 0 4px var(--m),0 0 0 8px #0d0e18}
+.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding-block:10px;padding-inline:16px;background:var(--k);border-bottom:4px solid var(--m)}
+.logo{margin:0;font-family:var(--f-display);font-size:12px;line-height:1.4;letter-spacing:0;color:var(--w);display:flex;gap:8px;align-items:center;text-shadow:2px 2px 0 var(--r)}
+.logo b{color:var(--y);font-weight:400}
+.claim{font-family:var(--f-mono);font-size:18px;color:var(--s);border:2px solid var(--d);padding:0 8px;line-height:1.2}
+.tstats{display:flex;flex-wrap:wrap;gap:2px 18px;margin:0 0 0 auto}
+.tstats div{display:flex;flex-direction:column}
+.tstats dt{font-size:12px;color:var(--s);display:flex;gap:4px;align-items:center}
+.tstats dd{margin:0;font-family:var(--f-mono);font-size:24px;line-height:1;font-variant-numeric:tabular-nums}
+#rShards{color:var(--a)}
+#rPermit.low{color:var(--o);animation:blink 1s steps(2) infinite}
+
+/* ---------- surface camp ---------- */
+.town{position:relative;flex:none;height:clamp(110px,20vh,190px);background:var(--k);overflow:hidden}
+#town{width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.blds button{position:absolute;background:transparent;border:0;padding:0;cursor:pointer}
+.blds button:hover,.blds button:focus-visible{background:rgba(255,205,117,.12);outline:2px dashed var(--y);outline-offset:0}
+.tag{position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);white-space:nowrap;font-family:var(--f-display);font-size:8px;line-height:1.5;background:var(--k);color:var(--y);border:2px solid var(--y);padding:3px 5px;pointer-events:none;opacity:0}
+.blds button:hover .tag,.blds button:focus-visible .tag{opacity:1}
+.mk{position:absolute;font-family:var(--f-display);font-size:9px;line-height:1;font-style:normal;background:var(--y);color:var(--k);padding:3px 4px;box-shadow:2px 2px 0 var(--k);pointer-events:none;animation:bob 1s steps(2) infinite}
+.blds .mk{left:50%;top:-16px;margin-left:-7px}
+@keyframes bob{50%{transform:translateY(-3px)}}
+@keyframes blink{50%{opacity:.45}}
+
+/* ---------- borehole ---------- */
+.shaft{position:relative;flex:1 1 auto;min-height:190px;background:#0d0e11;border-top:4px solid #2b1e1a;overflow:hidden}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:manipulation;user-select:none;-webkit-user-select:none;image-rendering:pixelated;image-rendering:crisp-edges}
+.txtlayer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:block;z-index:1}
+.hud-depth{position:absolute;left:62px;top:10px;z-index:2;display:flex;flex-direction:column;gap:2px;padding:8px 10px;background:rgba(26,28,44,.82);border:3px solid var(--m);box-shadow:3px 3px 0 rgba(0,0,0,.5);pointer-events:none;max-width:calc(100% - 74px)}
+.lbl{font-size:12px;color:var(--s);display:flex;gap:4px;align-items:center}
+.big{font-family:var(--f-display);font-size:clamp(16px,3.4vw,22px);line-height:1.3;color:var(--w);text-shadow:2px 2px 0 var(--k)}
+.val{font-family:var(--f-mono);font-size:20px;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.val.dim{color:var(--s)}
+.hint{position:absolute;left:62px;bottom:12px;z-index:2;font-family:var(--f-display);font-size:8px;line-height:1.6;color:var(--k);background:var(--y);padding:5px 8px;box-shadow:3px 3px 0 var(--k);pointer-events:none;animation:blink 1.4s steps(2) infinite}
+.warns{position:absolute;right:10px;bottom:10px;z-index:2;display:flex;flex-direction:column;align-items:flex-end;gap:6px;pointer-events:none;max-width:calc(100% - 80px)}
+.fullwarn{font-family:var(--f-display);font-size:8px;line-height:1.6;background:var(--o);color:var(--k);padding:6px 8px;box-shadow:3px 3px 0 var(--k);animation:blink 1s steps(2) infinite}
+.btn.blast{pointer-events:auto}
+
+/* ---------- ticker + finds ---------- */
+.ticker{flex:none;background:var(--k);border-top:3px solid var(--m);padding-block:6px;padding-inline:16px}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;font-size:14px;min-height:40px}
+.log li{display:flex;gap:10px;color:var(--s);min-width:0}
+.log li:nth-child(n+3){display:none}
+.log li:first-child{color:var(--w)}
+.log li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.log time{font-family:var(--f-mono);font-size:17px;line-height:1;flex:none;width:82px;text-align:right;color:var(--d)}
+.log .k-pocket span{color:var(--y)}
+.log .k-shard span{color:var(--a)}
+.log .k-barrier span{color:var(--o)}
+.boons{flex:none;display:flex;gap:6px;align-items:center;overflow-x:auto;padding-block:6px;padding-inline:16px;background:var(--k);scrollbar-width:none}
+.boons .lbl{flex:none}
+.boons .empty{font-size:13px;color:var(--d);white-space:nowrap}
+.chip{flex:none;font-size:13px;padding:1px 8px;border:2px solid var(--rc);color:var(--w);background:var(--panel);white-space:nowrap}
+.chip b{color:var(--rc);font-family:var(--f-mono);font-size:16px;font-weight:400}
+
+/* ---------- console bar ---------- */
+.console-bar{flex:none;display:flex;flex-direction:column;gap:10px;background:var(--m);border-top:4px solid var(--d);padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));padding-inline:16px}
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.meter{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px;min-width:0}
+.meter .val{font-size:18px}
+.bar{height:14px;background:#0d0e18;border:3px solid var(--k);overflow:hidden;min-width:30px}
+.bar i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,var(--y) 0 6px,#c9963f 6px 8px)}
+.bar.full i,.bar#heatBar.hot i{background:repeating-linear-gradient(90deg,var(--o) 0 6px,var(--r) 6px 8px)}
+.bar#heatBar i{background:repeating-linear-gradient(90deg,var(--c) 0 6px,var(--b) 6px 8px)}
+.bar#heatBar.warm i{background:repeating-linear-gradient(90deg,var(--y) 0 6px,#c9963f 6px 8px)}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hotbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.hotbar button{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 2px 6px;background:var(--k);border:3px solid var(--d);box-shadow:var(--bevel);cursor:pointer;font-size:12px;line-height:1.1;min-width:0}
+.hotbar button:hover{border-color:var(--y)}
+.hotbar button:active{transform:translate(2px,2px);box-shadow:none}
+.hotbar .pxi{width:28px;height:28px}
+.hotbar span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hotbar .mk{top:-8px;right:-6px}
+#dotYard{display:none!important}
+
+/* ---------- buttons ---------- */
+.btn{font-family:var(--f-display);font-size:9px;line-height:1.6;text-transform:uppercase;letter-spacing:0;padding:10px 10px;border:3px solid var(--d);background:var(--panel);color:var(--w);box-shadow:var(--bevel);cursor:pointer;font-variant-numeric:tabular-nums}
+.btn:hover:not(:disabled){border-color:var(--y)}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:inset 3px 3px 0 rgba(0,0,0,.35)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--y);color:var(--k);border-color:#c9963f}
+.btn.ship,.btn.shard{background:var(--k);color:var(--a);border-color:var(--a)}
+.btn.danger{background:var(--k);color:var(--o);border-color:var(--o)}
+
+/* ---------- RPG windows ---------- */
+.scrim{position:fixed;inset:0;z-index:30;background:rgba(13,14,24,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+.win,.draft-in,.ending-in,.toast,.intro-box{background:repeating-linear-gradient(180deg,#29366f 0 3px,#26306a 3px 6px);border:4px solid var(--w);box-shadow:0 0 0 4px var(--k),inset 0 0 0 3px var(--b),8px 8px 0 4px rgba(0,0,0,.45)}
+.win{width:min(680px,100%);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;min-height:0}
+.win-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-bottom:4px solid var(--k)}
+.win-h h2{margin:0;font-family:var(--f-display);font-size:13px;line-height:1.4;color:var(--y);text-shadow:2px 2px 0 var(--k)}
+.win-x{font-family:var(--f-display);font-size:11px;background:var(--r);color:var(--w);border:3px solid var(--k);padding:6px 8px;cursor:pointer;box-shadow:var(--bevel)}
+.win-b{overflow:auto;padding:0 14px 14px;min-height:0}
+.tabs{position:sticky;top:0;z-index:1;display:flex;gap:4px;padding-top:12px;background:#29366f;border-bottom:3px solid var(--k)}
+.tab{flex:1;position:relative;background:transparent;border:0;padding:10px 2px 8px;cursor:pointer;font-family:var(--f-display);font-size:8px;line-height:1.4;color:var(--s)}
+.tab[aria-selected="true"]{color:var(--y);background:rgba(26,28,44,.5)}
+.tab[aria-selected="true"]::before{content:"▶ "}
+.tab .dot{position:absolute;top:3px;right:3px;width:6px;height:6px;background:var(--a)}
+.panel{padding-block:12px 4px;display:flex;flex-direction:column;gap:10px}
+.panel h3{font-family:var(--f-display);font-size:9px;line-height:1.5;margin:8px 0 0;color:var(--y)}
+.panel p{margin:0;color:var(--s);font-size:15px;max-width:62ch}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.seg{display:inline-flex;border:3px solid var(--k)}
+.seg button{background:var(--k);border:0;padding:2px 12px;cursor:pointer;font-family:var(--f-mono);font-size:20px;color:var(--s)}
+.seg button[aria-pressed="true"]{background:var(--y);color:var(--k)}
+.upg{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 12px 10px 24px;background:rgba(26,28,44,.6);border:3px solid transparent}
+.upg::before{content:"▶";position:absolute;left:7px;top:12px;font-size:12px;color:var(--y);opacity:0}
+.upg:hover::before,.upg:focus-within::before{opacity:1}
+.upg.can{border-color:var(--y)}
+.upg.need{border-color:var(--o)}
+.upg .name{font-weight:600;font-size:16px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.upg .lv{font-family:var(--f-mono);font-size:18px;color:var(--s);font-weight:400}
+.upg .eff{font-size:14px;color:var(--s);grid-column:1}
+.upg .eff b{color:var(--w);font-weight:500}
+.upg .btn{grid-row:1/span 2;grid-column:2;min-width:108px;font-family:var(--f-mono);font-size:20px;line-height:1;text-transform:none;padding:8px 10px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;font-size:12px;color:var(--s);font-weight:500;padding:4px 6px;border-bottom:3px solid var(--k)}
+td{padding:5px 6px;border-bottom:2px solid rgba(26,28,44,.6)}
+td.n,th.n{text-align:right;font-family:var(--f-mono);font-size:18px}
+.unknown td{color:var(--d)}
+.sw{display:inline-block;width:10px;height:10px;margin-right:8px;vertical-align:-1px;transform:rotate(45deg)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:rgba(26,28,44,.6);border:3px solid var(--k);padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.stat .v{font-family:var(--f-mono);font-size:24px;line-height:1}
+.stat .v.shard{color:var(--a)}
+/* skill tree */
+.branch-heads{display:grid;grid-template-columns:repeat(4,1fr);text-align:center}
+.branch-heads span{font-family:var(--f-display);font-size:7px;line-height:1.5;color:var(--s)}
+.tree{position:relative;width:100%}
+.tree svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.tree line{stroke:var(--k);stroke-width:3}
+.tree line.on{stroke:var(--y)}
+.node{position:absolute;transform:translate(-50%,-26px);width:25%;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;cursor:pointer;padding:0}
+.node .gem{width:46px;height:46px;transform:rotate(45deg);border:3px solid var(--k);background:var(--m);display:grid;place-items:center;box-shadow:3px 3px 0 rgba(0,0,0,.4)}
+.node .gem span{transform:rotate(-45deg);font-family:var(--f-mono);font-size:18px;color:var(--s)}
+.node .nm{font-size:12px;line-height:1.15;text-align:center;color:var(--s);max-width:100%}
+.node.avail .gem{border-color:var(--a)}
+.node.avail .gem span{color:var(--a)}
+.node.afford .gem{animation:bob 1s steps(2) infinite}
+.node.own .gem{background:var(--y);border-color:#c9963f}
+.node.own .gem span{color:var(--k)}
+.node.own .nm{color:var(--w)}
+.node.locked{opacity:.5}
+.node.sel .gem{outline:3px solid var(--w);outline-offset:4px}
+.detail{background:rgba(26,28,44,.6);border:3px solid var(--k);padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.detail .t{font-weight:600;font-size:16px}
+/* shipyard */
+.yard-view{position:relative;height:220px;margin-top:12px;border:3px solid var(--k);background:var(--k);overflow:hidden}
+#yv{width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.yard-cap{position:absolute;left:10px;top:8px;z-index:2;display:flex;flex-direction:column;gap:2px;pointer-events:none}
+.yard-cap h2{margin:0;font-family:var(--f-display);font-size:14px;line-height:1.4;color:var(--w);text-shadow:2px 2px 0 var(--k)}
+.yard-cap p{margin:0;font-size:13px;color:var(--s);text-shadow:1px 1px 0 var(--k)}
+.stage{background:rgba(26,28,44,.6);border:3px solid var(--k);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.stage.current{border-color:var(--a)}
+.stage.built .t{color:var(--s)}
+.stage-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.stage-h .t{font-weight:600}
+.pill{font-family:var(--f-mono);font-size:17px;line-height:1.1;text-transform:uppercase;padding:0 8px;border:2px solid var(--d);color:var(--s);white-space:nowrap}
+.pill.built{color:var(--l);border-color:var(--l)}
+.pill.ready{color:var(--a);border-color:var(--a);animation:blink 1s steps(2) infinite}
+.mat{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;font-size:14px;align-items:center}
+.mat .bar{grid-column:1/-1;height:12px;border-width:2px}
+.mat .bar i{background:repeating-linear-gradient(90deg,var(--a) 0 6px,var(--c) 6px 8px)}
+.mat .q{font-family:var(--f-mono);font-size:17px;color:var(--s)}
+.stage .rw{font-size:14px;color:var(--s)}
+.stage .rw b{color:var(--w);font-weight:500}
+#launchBtn{font-size:14px;padding:16px;animation:blink 1s steps(2) infinite}
+
+/* ---------- treasure draft ---------- */
+.draft{position:fixed;inset:0;z-index:25;background:rgba(13,14,24,.85);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.draft-in{width:min(680px,100%);display:flex;flex-direction:column;gap:12px;margin:auto;padding:16px;position:relative}
+.draft-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.draft-head .lbl{color:var(--y)}
+.draft-head h2{margin:0;font-family:var(--f-display);font-size:14px;line-height:1.5;color:var(--w);text-shadow:2px 2px 0 var(--k)}
+.cards{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:10px}
+@media (max-width:560px){.cards{grid-template-columns:1fr}}
+.card{background:var(--k);border:3px solid var(--d);border-top:6px solid var(--rc);padding:10px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-width:0;box-shadow:var(--bevel)}
+.card:hover,.card:focus-visible{border-color:var(--rc);transform:translateY(-3px)}
+.card .rar{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--rc);display:flex;justify-content:space-between;gap:8px}
+.card .rar kbd{font-family:var(--f-mono);font-size:16px;color:var(--d)}
+.card .cn{font-family:var(--f-display);font-size:10px;line-height:1.5}
+.card .cd{font-size:14px;color:var(--s)}
+.card .own{font-family:var(--f-mono);font-size:16px;color:var(--d);margin-top:auto}
+#draftSell{align-self:flex-start}
+.draft.arming .cards,.draft.arming #draftSell{opacity:.4;pointer-events:none}
+.draft-in::before{content:"";position:absolute;left:-4px;right:-4px;top:-14px;height:4px;background:var(--a);transform-origin:left;opacity:0}
+.draft.arming .draft-in::before{opacity:1;animation:arm .8s steps(8) forwards}
+@keyframes arm{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+/* ---------- claim map ---------- */
+.cmap{position:fixed;inset:0;z-index:40;background:rgba(13,14,24,.88);display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto}
+.cmap-in{width:min(860px,100%);margin-block:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:repeating-linear-gradient(180deg,#29366f 0 3px,#26306a 3px 6px);border:4px solid var(--w);box-shadow:0 0 0 4px var(--k),inset 0 0 0 3px var(--b),8px 8px 0 4px rgba(0,0,0,.45)}
+.cmap-h{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.cmap-h>div{flex:1;min-width:0}
+.cmap-h .lbl{color:var(--o)}
+.cmap-h h2{margin:4px 0 0;font-family:var(--f-display);font-size:14px;line-height:1.5;color:var(--y);text-shadow:2px 2px 0 var(--k)}
+.cmap-shards{color:var(--y);align-self:center}
+.cmap-note{margin:0;font-size:15px;color:var(--s)}
+.cmap-view{position:relative;width:100%;aspect-ratio:16/7;max-height:300px;border:4px solid var(--k);box-shadow:inset 0 0 0 2px var(--d);overflow:hidden;background:var(--1)}
+.cmap-view canvas{width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.pin{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;display:grid;place-items:center;padding:0;font-family:var(--f-display);font-size:9px;background:var(--m);color:var(--s);border:3px solid var(--k);box-shadow:2px 2px 0 var(--k);cursor:pointer}
+.pin.own{background:var(--y);color:var(--k)}
+.pin.cur{animation:bob 1s steps(2) infinite;outline:3px solid var(--a);outline-offset:2px}
+.pin.sel{background:var(--w);color:var(--k)}
+.cmap-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.ccard{background:rgba(26,28,44,.7);border:3px solid var(--k);padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-width:0;box-shadow:var(--bevel)}
+.ccard.own{border-color:var(--d)}
+.ccard.cur{border-color:var(--a)}
+.ccard.sel{border-color:var(--y)}
+.ccard.locked .t{color:var(--s)}
+.ccard-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.ccard-h .t{font-family:var(--f-display);font-size:9px;line-height:1.6}
+.ccard .cd{margin:0;font-size:14px;color:var(--s)}
+.ccard .row{justify-content:flex-start}
+.veins{display:flex;flex-wrap:wrap;gap:3px}
+.vein{width:16px;height:16px;background:var(--oc);border:2px solid var(--k);font-family:var(--f-mono);font-size:13px;line-height:1;display:grid;place-items:center;color:var(--k)}
+.vein.rich{outline:2px solid var(--y)}
+.mods{display:flex;flex-wrap:wrap;gap:6px}
+.mods .chip{--rc:var(--o);font-size:12px}
+.vtag{font-family:var(--f-mono);font-size:15px;padding:0 5px;margin-left:6px;white-space:nowrap;border:2px solid}
+.vtag.rich{color:var(--y)}
+.vtag.barren{color:var(--d)}
+
+/* ---------- ending, toast ---------- */
+.ending{position:fixed;inset:0;z-index:35;background:rgba(5,7,12,.9);display:flex;align-items:center;justify-content:center;padding:16px}
+.ending-in{width:min(560px,100%);padding:22px;display:flex;flex-direction:column;gap:14px}
+.ending-in h2{margin:0;font-family:var(--f-display);font-size:clamp(16px,4vw,24px);line-height:1.4;color:var(--y);text-shadow:3px 3px 0 var(--r)}
+.ending-in p{margin:0;color:var(--s)}
+.ending-in .lbl{color:var(--a)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(520px,calc(100% - 32px));padding:14px 16px;display:flex;gap:14px;align-items:center;z-index:28}
+.toast p{margin:0;flex:1;font-size:15px}
+
+/* ---------- title + story ---------- */
+.title,.intro{position:fixed;inset:0;z-index:50;background:var(--k);overflow:hidden}
+.title canvas,.intro canvas{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.title-top{position:absolute;left:0;right:0;top:calc(9vh + env(safe-area-inset-top,0px));display:flex;flex-direction:column;align-items:center;gap:16px;padding-inline:16px;text-align:center;pointer-events:none}
+.title-in{position:absolute;inset:auto 0 0 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:14px;padding:16px 16px calc(40px + env(safe-area-inset-bottom,0px));text-align:center}
+.title-kick{margin:0;font-family:var(--f-display);font-size:9px;line-height:1.6;color:var(--o);text-shadow:2px 2px 0 var(--k)}
+.title-logo{margin:0;font-family:var(--f-display);font-weight:400;font-size:clamp(26px,8vw,58px);line-height:1.15;color:var(--y);text-shadow:4px 4px 0 var(--r),8px 8px 0 var(--k)}
+.title-logo span{display:block;font-size:.42em;color:var(--a);text-shadow:3px 3px 0 var(--k);margin-top:10px}
+.title-sub{margin:0;font-family:var(--f-mono);font-size:21px;color:var(--w);text-shadow:2px 2px 0 var(--k);min-height:1.2em}
+.title-btns{display:flex;flex-direction:column;gap:10px;width:min(320px,100%)}
+.title-btns .btn{font-size:11px;padding:14px}
+.title-foot{margin:0;font-size:13px;color:var(--s);text-shadow:1px 1px 0 var(--k)}
+.intro-box{position:absolute;left:16px;right:16px;bottom:calc(24px + env(safe-area-inset-bottom,0px));max-width:720px;margin:0 auto;padding:16px 18px 14px;display:flex;flex-direction:column;gap:10px}
+.intro-box p{margin:0;font-size:clamp(17px,2.6vw,21px);line-height:1.4;min-height:4.2em}
+.intro-tap{align-self:flex-end;font-family:var(--f-display);font-size:8px;color:var(--y);animation:blink 1s steps(2) infinite}
+.intro-skip{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:16px;z-index:2}
+.intro-dots{display:flex;gap:6px}
+.intro-dots i{width:10px;height:10px;background:var(--m);border:2px solid var(--k)}
+.intro-dots i.on{background:var(--y)}
+@media (max-width:560px){
+  .tstats dd{font-size:21px}
+  .tstats{gap:2px 12px;margin-left:0}
+  .meter .lbl .word{display:none}
+  .meter .val{font-size:16px}
+  .console-bar{gap:8px;padding-block:8px calc(8px + env(safe-area-inset-bottom,0px))}
+  .hotbar button{padding:6px 2px 4px;font-size:11px}
+  .hotbar .pxi{width:24px;height:24px}
+  .boons .empty{display:none}
+  .tab[aria-selected="true"]::before{content:none}
+}
+.tab{white-space:nowrap}
+.warns{bottom:46px}
+@media (prefers-reduced-motion:reduce){
+  .mk,.hint,.fullwarn,#rPermit.low,.pill.ready,#launchBtn,.node.afford .gem,.intro-tap{animation:none}
+  .card:hover{transform:none}
+}
+</style>
+
+<div class="game" id="game">
+  <header class="topbar">
+    <h1 class="logo">Deepcore<b>8-Bit</b></h1>
+    <span class="claim" id="claimNo">Claim #1</span>
+    <dl class="tstats">
+      <div><dt><i data-ico="coin"></i>Credits</dt><dd id="rCredits">0 cr</dd></div>
+      <div><dt>Income</dt><dd id="rIncome">0 cr/s</dd></div>
+      <div><dt><i data-ico="gem"></i>Shards</dt><dd id="rShards">0</dd></div>
+      <div><dt>Record</dt><dd id="rBest">0 m</dd></div>
+      <div><dt><i data-ico="clock"></i>Permit</dt><dd id="rPermit">25:00</dd></div>
+    </dl>
+  </header>
+
+  <section class="town" id="townBox" aria-label="Deepcore Camp on the surface">
+    <canvas id="town" aria-hidden="true"></canvas>
+    <div class="blds" id="blds"></div>
+  </section>
+
+  <section class="shaft" aria-label="Borehole">
+    <canvas id="cv" tabindex="0" role="button" aria-label="Borehole view. Click, tap or press space to hammer the drill. Tap buried treasure, or press E, to dig it out."></canvas>
+    <canvas id="cvText" class="txtlayer" aria-hidden="true"></canvas>
+    <div class="hud-depth">
+      <span class="lbl">Bit depth</span>
+      <span class="big" id="gDepth">0.0 m</span>
+      <span class="val" id="gSpeed">1.00 m/s</span>
+      <span class="val dim" id="gStrat">Topsoil · Coal</span>
+    </div>
+    <div class="hint" id="hint">Tap the rock to hammer the bit</div>
+    <div class="draft" id="draft" hidden role="dialog" aria-modal="false" aria-labelledby="draftTitle">
+      <div class="draft-in">
+        <div class="draft-head"><span class="lbl" id="draftKicker">Recovered</span><h2 id="draftTitle"></h2><span class="val dim" id="draftQueue"></span></div>
+        <div class="cards" id="cards"></div>
+        <button class="btn" id="draftSell" type="button"></button>
+      </div>
+    </div>
+    <div class="warns">
+      <button class="btn primary blast" id="blastBtn" type="button" hidden></button>
+      <div class="fullwarn" id="heatWarn" hidden>Bit overheated · cooling</div>
+      <div class="fullwarn" id="blockWarn" hidden></div>
+      <div class="fullwarn" id="fullWarn" hidden>Hopper full · sell ore</div>
+    </div>
+  </section>
+
+  <div class="ticker"><ol class="log" id="log" aria-live="polite"></ol></div>
+  <div class="boons" id="boons"></div>
+
+  <footer class="console-bar">
+    <div class="meters">
+      <div class="meter"><span class="lbl"><i data-ico="cart"></i><span class="word">Hopper</span></span><div class="bar" id="hopBar" aria-label="Hopper"><i id="gHopBar"></i></div><span class="val" id="gHop">0 / 40</span></div>
+      <div class="meter"><span class="lbl"><i data-ico="flame"></i><span class="word">Heat</span></span><div class="bar" id="heatBar" aria-label="Bit heat"><i id="gHeatBar"></i></div><span class="val" id="gHeat">40 °C</span></div>
+    </div>
+    <div class="acts">
+      <button class="btn primary" id="sellBtn" type="button">Sell ore · <span id="sellVal">0</span> cr<span id="sellBonus"></span></button>
+      <button class="btn ship" id="shipBtn" type="button">Nothing in the hopper the yard needs</button>
+    </div>
+    <nav class="hotbar" aria-label="Camp buildings">
+      <button type="button" data-open="rig"><i data-ico="gear"></i><span>Workshop</span><b class="mk" data-mk="rig" hidden>!</b></button>
+      <button type="button" data-open="ore"><i data-ico="sack"></i><span>Assay</span><b class="mk" data-mk="ore" hidden>!</b></button>
+      <button type="button" data-open="skills"><i data-ico="book"></i><span>Archive</span><b class="mk" data-mk="skills" hidden>!</b></button>
+      <button type="button" data-open="prestige"><i data-ico="flag"></i><span>Claims</span><b class="mk" data-mk="prestige" hidden>!</b></button>
+      <button type="button" data-open="yard"><i data-ico="rocket"></i><span>Shipyard</span><b class="mk" data-mk="yard" hidden>!</b><i class="dot" id="dotYard" hidden></i></button>
+    </nav>
+  </footer>
+</div>
+
+<div class="scrim" id="winScrim" hidden>
+  <div class="win" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="win-h"><h2 id="winTitle">Workshop</h2><button class="win-x" id="winClose" type="button" aria-label="Close window">X</button></div>
+    <div class="win-b">
+      <div id="siteScreen">
+        <nav class="tabs" role="tablist">
+          <button class="tab" role="tab" id="tab-rig" aria-selected="true" data-tab="rig" type="button">Workshop</button>
+          <button class="tab" role="tab" id="tab-ore" aria-selected="false" data-tab="ore" type="button">Assay</button>
+          <button class="tab" role="tab" id="tab-skills" aria-selected="false" data-tab="skills" type="button">Archive<i class="dot" id="dotSkills" hidden></i></button>
+          <button class="tab" role="tab" id="tab-prestige" aria-selected="false" data-tab="prestige" type="button">Claims<i class="dot" id="dotPrestige" hidden></i></button>
+        </nav>
+
+        <div class="panel" id="p-rig" role="tabpanel">
+          <div class="row"><p>Deeper rock pays more and fights back harder.</p>
+            <div class="seg" role="group" aria-label="Buy amount">
+              <button type="button" data-buy="1" aria-pressed="true">×1</button><button type="button" data-buy="10" aria-pressed="false">×10</button><button type="button" data-buy="max" aria-pressed="false">Max</button>
+            </div>
+          </div>
+          <div id="upgList" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+
+        <div class="panel" id="p-ore" role="tabpanel" hidden>
+          <h3>Hopper contents</h3>
+          <div class="tablewrap"><table><thead><tr><th>Mineral</th><th class="n">Loads</th><th class="n">Price</th><th class="n">Worth</th></tr></thead><tbody id="oreBody"></tbody></table></div>
+          <h3>Formation log</h3>
+          <div class="tablewrap"><table><thead><tr><th>Formation</th><th>Mineral</th><th class="n">Top</th><th>Bit needed</th><th class="n">Base price</th></tr></thead><tbody id="codexBody"></tbody></table></div>
+        </div>
+
+        <div class="panel" id="p-skills" role="tabpanel" hidden>
+          <div class="row"><p>Spend core shards. Skills are permanent and survive every prestige.</p><span class="val" style="color:var(--a)" id="skShards">0 shards</span></div>
+          <div class="branch-heads"><span>Drilling</span><span>Geology</span><span>Commerce</span><span>Engineering</span></div>
+          <div class="tree" id="tree"><svg id="treeSvg" aria-hidden="true"></svg></div>
+          <div class="detail" id="detail"></div>
+        </div>
+
+        <div class="panel" id="p-prestige" role="tabpanel" hidden>
+          <p>When the storm closes in, seal this shaft and stake a new claim. You keep core shards, skills and your record depth. Credits, ore, rig upgrades and this claim's finds reset. The shipyard keeps everything you shipped. Every shard you have ever earned keeps boosting drill speed, with diminishing returns: 10 shards give ×2.3, 100 give ×5, 1,000 give ×11.</p>
+          <div class="stats">
+            <div class="stat"><span class="lbl">Deepest this claim</span><span class="v" id="pDepth">0 m</span></div>
+            <div class="stat"><span class="lbl">Shards on sealing</span><span class="v shard" id="pGain">0</span></div>
+            <div class="stat"><span class="lbl">Next shard at</span><span class="v" id="pNext">300 m</span></div>
+            <div class="stat"><span class="lbl">Shard bonus now</span><span class="v" id="pBonus">×1.00</span></div>
+          </div>
+          <button class="btn shard" id="prestigeBtn" type="button">Seal shaft</button>
+          <h3>Career</h3>
+          <div class="stats">
+            <div class="stat"><span class="lbl">Claims sealed</span><span class="v" id="sClaims">0</span></div>
+            <div class="stat"><span class="lbl">Lifetime earnings</span><span class="v" id="sLife">0 cr</span></div>
+            <div class="stat"><span class="lbl">Treasures dug out</span><span class="v" id="sFinds">0</span></div>
+            <div class="stat"><span class="lbl">Best find</span><span class="v" id="sBest">0 cr</span></div>
+          </div>
+          <h3>Save</h3>
+          <p>Progress saves in this browser every few seconds. The rig keeps drilling at half speed while you are away, for up to 8 hours. The permit clock only runs while the game is open.</p>
+          <button class="btn danger" id="wipeBtn" type="button" style="align-self:flex-start">Wipe save</button>
+        </div>
+      </div>
+
+      <div id="yardScreen" hidden>
+        <section class="yard-view" aria-label="Launch pad">
+          <canvas id="yv" aria-hidden="true"></canvas>
+          <canvas id="yvText" class="txtlayer" aria-hidden="true"></canvas>
+          <div class="yard-cap"><span class="lbl">Escape vessel</span><h2>Meridian</h2><p id="shipStatus"></p></div>
+        </section>
+        <div class="panel">
+          <div class="row"><h3>Build stages</h3><span class="val dim" id="yardStock"></span></div>
+          <p>Ship ore from the hopper to fund the build. Shipped ore and finished stages are never reset, not even by prestige. Rare pockets carry the next formation's mineral, so some minerals arrive before you reach their layer.</p>
+          <button class="btn ship" id="shipBtn2" type="button">Nothing in the hopper the yard needs</button>
+          <button class="btn primary" id="launchBtn" type="button" hidden>Launch Meridian</button>
+          <div id="stages" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ending" id="ending" hidden role="dialog" aria-labelledby="endTitle">
+  <div class="ending-in">
+    <span class="lbl">Escape velocity reached</span>
+    <h2 id="endTitle">Meridian is away</h2>
+    <p>Kessra falls away behind you, its swollen sun shrinking to a red coin in the dark. The rig keeps running down there on its own: claims no longer expire, and the shipyard takes endless refits that make every future claim stronger.</p>
+    <div class="stats" id="endStats"></div>
+    <button class="btn primary" id="endOk" type="button">Continue in endless mode</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden><p id="toastText"></p><button class="btn primary" id="toastOk" type="button">Collect</button></div>
+
+<div class="title" id="title" hidden>
+  <canvas id="titleCv" aria-hidden="true"></canvas>
+  <div class="title-top">
+    <p class="title-kick">Kessra · year 2291</p>
+    <h2 class="title-logo">Deepcore<span>8-Bit</span></h2>
+  </div>
+  <div class="title-in">
+    <p class="title-sub" id="titleSave"></p>
+    <div class="title-btns">
+      <button class="btn primary" id="btnContinue" type="button">Continue</button>
+      <button class="btn" id="btnNew" type="button">New game</button>
+    </div>
+    <p class="title-foot">Tap the rock to dig · tap treasure to excavate</p>
+  </div>
+</div>
+
+<div class="intro" id="intro" hidden role="dialog" aria-label="Story">
+  <canvas id="introCv" aria-hidden="true"></canvas>
+  <button class="btn intro-skip" id="introSkip" type="button">Skip</button>
+  <div class="intro-box">
+    <div class="intro-dots" id="introDots"></div>
+    <p id="introLine" aria-live="polite"></p>
+    <span class="intro-tap" id="introTap">Tap to continue</span>
+  </div>
+</div>
+
+<script>
+/*__GAME_SCRIPT__*/
+</script>

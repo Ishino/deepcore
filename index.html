@@ -1,0 +1,2548 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Deepcore: an incremental drilling game. Dig through the rock of a dying planet for rare minerals, excavate treasure, and build the Meridian to escape.">
+<meta name="theme-color" content="#1a1c2c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%208%208%22%20shape-rendering%3D%22crispEdges%22%3E%3Crect%20x%3D%221%22%20y%3D%220%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%23ffcd75%22%2F%3E%3Crect%20x%3D%222%22%20y%3D%220%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%23ffcd75%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%220%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%23ffcd75%22%2F%3E%3Crect%20x%3D%224%22%20y%3D%220%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%23ffcd75%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%220%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%23ffcd75%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%221%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%23ffcd75%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%221%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%231a1c2c%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%221%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%2394b0c2%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%221%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%2394b0c2%22%2F%3E%3Crect%20x%3D%224%22%20y%3D%222%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%2394b0c2%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%222%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%231a1c2c%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%238a5a3c%22%2F%3E%3Crect%20x%3D%222%22%20y%3D%224%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%238a5a3c%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%225%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%238a5a3c%22%2F%3E%3Crect%20x%3D%220%22%20y%3D%226%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%238a5a3c%22%2F%3E%3C%2Fsvg%3E">
+<style>[hidden]{display:none!important}html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}.edition-link a{color:inherit}</style>
+<title>Deepcore 8-Bit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Pixelify+Sans:wght@400;500;600;700&family=VT323&display=swap">
+<style>
+/* Layout: a portrait handheld screen. Surface camp strip on top (buildings open menus), borehole in the middle,
+   console bar with meters, actions and a building hotbar at the bottom. Menus open as RPG dialog windows.
+   Palette: Sweetie 16 plus four earth tones; the borehole canvas is dithered down to it every frame. */
+:root{
+  --k:#1a1c2c; --p:#5d275d; --r:#b13e53; --o:#ef7d57; --y:#ffcd75; --l:#a7f070; --g:#38b764; --t:#257179;
+  --n:#29366f; --b:#3b5dc9; --c:#41a6f6; --a:#73eff7; --w:#f4f4f4; --s:#94b0c2; --d:#566c86; --m:#333c57;
+  --ground:var(--k); --panel:#262b44; --panel-2:var(--m); --line:var(--d); --ink:var(--w); --muted:var(--s);
+  --hazard:var(--y); --hazard-ink:var(--k); --shard:var(--a); --good:var(--l); --cool:var(--c); --epic:#c86bd6; --bad:var(--o);
+  --f-display:'Press Start 2P','Courier New',monospace;
+  --f-body:'Pixelify Sans','Courier New',monospace;
+  --f-mono:'VT323','Courier New',monospace;
+  --bevel:inset -3px -3px 0 rgba(0,0,0,.35),inset 3px 3px 0 rgba(255,255,255,.16);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{height:100%}
+body{margin:0;color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.35;
+  background-color:#0d0e18;background-image:linear-gradient(45deg,#15172a 25%,transparent 25%,transparent 75%,#15172a 75%),linear-gradient(45deg,#15172a 25%,transparent 25%,transparent 75%,#15172a 75%);
+  background-size:4px 4px;background-position:0 0,2px 2px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--y);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.pxi{width:16px;height:16px;display:inline-block;vertical-align:-3px;flex:none}
+
+/* ---------- handheld frame ---------- */
+.game{max-width:820px;margin:0 auto;height:100%;min-height:560px;display:flex;flex-direction:column;background:var(--k);box-shadow:0 0 0 4px var(--m),0 0 0 8px #0d0e18}
+.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding-block:10px;padding-inline:16px;background:var(--k);border-bottom:4px solid var(--m)}
+.logo{margin:0;font-family:var(--f-display);font-size:12px;line-height:1.4;letter-spacing:0;color:var(--w);display:flex;gap:8px;align-items:center;text-shadow:2px 2px 0 var(--r)}
+.logo b{color:var(--y);font-weight:400}
+.claim{font-family:var(--f-mono);font-size:18px;color:var(--s);border:2px solid var(--d);padding:0 8px;line-height:1.2}
+.tstats{display:flex;flex-wrap:wrap;gap:2px 18px;margin:0 0 0 auto}
+.tstats div{display:flex;flex-direction:column}
+.tstats dt{font-size:12px;color:var(--s);display:flex;gap:4px;align-items:center}
+.tstats dd{margin:0;font-family:var(--f-mono);font-size:24px;line-height:1;font-variant-numeric:tabular-nums}
+#rShards{color:var(--a)}
+#rPermit.low{color:var(--o);animation:blink 1s steps(2) infinite}
+
+/* ---------- surface camp ---------- */
+.town{position:relative;flex:none;height:clamp(110px,20vh,190px);background:var(--k);overflow:hidden}
+#town{width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.blds button{position:absolute;background:transparent;border:0;padding:0;cursor:pointer}
+.blds button:hover,.blds button:focus-visible{background:rgba(255,205,117,.12);outline:2px dashed var(--y);outline-offset:0}
+.tag{position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);white-space:nowrap;font-family:var(--f-display);font-size:8px;line-height:1.5;background:var(--k);color:var(--y);border:2px solid var(--y);padding:3px 5px;pointer-events:none;opacity:0}
+.blds button:hover .tag,.blds button:focus-visible .tag{opacity:1}
+.mk{position:absolute;font-family:var(--f-display);font-size:9px;line-height:1;font-style:normal;background:var(--y);color:var(--k);padding:3px 4px;box-shadow:2px 2px 0 var(--k);pointer-events:none;animation:bob 1s steps(2) infinite}
+.blds .mk{left:50%;top:-16px;margin-left:-7px}
+@keyframes bob{50%{transform:translateY(-3px)}}
+@keyframes blink{50%{opacity:.45}}
+
+/* ---------- borehole ---------- */
+.shaft{position:relative;flex:1 1 auto;min-height:190px;background:#0d0e11;border-top:4px solid #2b1e1a;overflow:hidden}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:manipulation;user-select:none;-webkit-user-select:none;image-rendering:pixelated;image-rendering:crisp-edges}
+.txtlayer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:block;z-index:1}
+.hud-depth{position:absolute;left:62px;top:10px;z-index:2;display:flex;flex-direction:column;gap:2px;padding:8px 10px;background:rgba(26,28,44,.82);border:3px solid var(--m);box-shadow:3px 3px 0 rgba(0,0,0,.5);pointer-events:none;max-width:calc(100% - 74px)}
+.lbl{font-size:12px;color:var(--s);display:flex;gap:4px;align-items:center}
+.big{font-family:var(--f-display);font-size:clamp(16px,3.4vw,22px);line-height:1.3;color:var(--w);text-shadow:2px 2px 0 var(--k)}
+.val{font-family:var(--f-mono);font-size:20px;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.val.dim{color:var(--s)}
+.hint{position:absolute;left:62px;bottom:12px;z-index:2;font-family:var(--f-display);font-size:8px;line-height:1.6;color:var(--k);background:var(--y);padding:5px 8px;box-shadow:3px 3px 0 var(--k);pointer-events:none;animation:blink 1.4s steps(2) infinite}
+.warns{position:absolute;right:10px;bottom:10px;z-index:2;display:flex;flex-direction:column;align-items:flex-end;gap:6px;pointer-events:none;max-width:calc(100% - 80px)}
+.fullwarn{font-family:var(--f-display);font-size:8px;line-height:1.6;background:var(--o);color:var(--k);padding:6px 8px;box-shadow:3px 3px 0 var(--k);animation:blink 1s steps(2) infinite}
+.btn.blast{pointer-events:auto}
+
+/* ---------- ticker + finds ---------- */
+.ticker{flex:none;background:var(--k);border-top:3px solid var(--m);padding-block:6px;padding-inline:16px}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;font-size:14px;min-height:40px}
+.log li{display:flex;gap:10px;color:var(--s);min-width:0}
+.log li:nth-child(n+3){display:none}
+.log li:first-child{color:var(--w)}
+.log li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.log time{font-family:var(--f-mono);font-size:17px;line-height:1;flex:none;width:82px;text-align:right;color:var(--d)}
+.log .k-pocket span{color:var(--y)}
+.log .k-shard span{color:var(--a)}
+.log .k-barrier span{color:var(--o)}
+.boons{flex:none;display:flex;gap:6px;align-items:center;overflow-x:auto;padding-block:6px;padding-inline:16px;background:var(--k);scrollbar-width:none}
+.boons .lbl{flex:none}
+.boons .empty{font-size:13px;color:var(--d);white-space:nowrap}
+.chip{flex:none;font-size:13px;padding:1px 8px;border:2px solid var(--rc);color:var(--w);background:var(--panel);white-space:nowrap}
+.chip b{color:var(--rc);font-family:var(--f-mono);font-size:16px;font-weight:400}
+
+/* ---------- console bar ---------- */
+.console-bar{flex:none;display:flex;flex-direction:column;gap:10px;background:var(--m);border-top:4px solid var(--d);padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));padding-inline:16px}
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.meter{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px;min-width:0}
+.meter .val{font-size:18px}
+.bar{height:14px;background:#0d0e18;border:3px solid var(--k);overflow:hidden;min-width:30px}
+.bar i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,var(--y) 0 6px,#c9963f 6px 8px)}
+.bar.full i,.bar#heatBar.hot i{background:repeating-linear-gradient(90deg,var(--o) 0 6px,var(--r) 6px 8px)}
+.bar#heatBar i{background:repeating-linear-gradient(90deg,var(--c) 0 6px,var(--b) 6px 8px)}
+.bar#heatBar.warm i{background:repeating-linear-gradient(90deg,var(--y) 0 6px,#c9963f 6px 8px)}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hotbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.hotbar button{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 2px 6px;background:var(--k);border:3px solid var(--d);box-shadow:var(--bevel);cursor:pointer;font-size:12px;line-height:1.1;min-width:0}
+.hotbar button:hover{border-color:var(--y)}
+.hotbar button:active{transform:translate(2px,2px);box-shadow:none}
+.hotbar .pxi{width:28px;height:28px}
+.hotbar span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hotbar .mk{top:-8px;right:-6px}
+#dotYard{display:none!important}
+
+/* ---------- buttons ---------- */
+.btn{font-family:var(--f-display);font-size:9px;line-height:1.6;text-transform:uppercase;letter-spacing:0;padding:10px 10px;border:3px solid var(--d);background:var(--panel);color:var(--w);box-shadow:var(--bevel);cursor:pointer;font-variant-numeric:tabular-nums}
+.btn:hover:not(:disabled){border-color:var(--y)}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:inset 3px 3px 0 rgba(0,0,0,.35)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--y);color:var(--k);border-color:#c9963f}
+.btn.ship,.btn.shard{background:var(--k);color:var(--a);border-color:var(--a)}
+.btn.danger{background:var(--k);color:var(--o);border-color:var(--o)}
+
+/* ---------- RPG windows ---------- */
+.scrim{position:fixed;inset:0;z-index:30;background:rgba(13,14,24,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+.win,.draft-in,.ending-in,.toast,.intro-box{background:repeating-linear-gradient(180deg,#29366f 0 3px,#26306a 3px 6px);border:4px solid var(--w);box-shadow:0 0 0 4px var(--k),inset 0 0 0 3px var(--b),8px 8px 0 4px rgba(0,0,0,.45)}
+.win{width:min(680px,100%);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;min-height:0}
+.win-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-bottom:4px solid var(--k)}
+.win-h h2{margin:0;font-family:var(--f-display);font-size:13px;line-height:1.4;color:var(--y);text-shadow:2px 2px 0 var(--k)}
+.win-x{font-family:var(--f-display);font-size:11px;background:var(--r);color:var(--w);border:3px solid var(--k);padding:6px 8px;cursor:pointer;box-shadow:var(--bevel)}
+.win-b{overflow:auto;padding:0 14px 14px;min-height:0}
+.tabs{position:sticky;top:0;z-index:1;display:flex;gap:4px;padding-top:12px;background:#29366f;border-bottom:3px solid var(--k)}
+.tab{flex:1;position:relative;background:transparent;border:0;padding:10px 2px 8px;cursor:pointer;font-family:var(--f-display);font-size:8px;line-height:1.4;color:var(--s)}
+.tab[aria-selected="true"]{color:var(--y);background:rgba(26,28,44,.5)}
+.tab[aria-selected="true"]::before{content:"▶ "}
+.tab .dot{position:absolute;top:3px;right:3px;width:6px;height:6px;background:var(--a)}
+.panel{padding-block:12px 4px;display:flex;flex-direction:column;gap:10px}
+.panel h3{font-family:var(--f-display);font-size:9px;line-height:1.5;margin:8px 0 0;color:var(--y)}
+.panel p{margin:0;color:var(--s);font-size:15px;max-width:62ch}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.seg{display:inline-flex;border:3px solid var(--k)}
+.seg button{background:var(--k);border:0;padding:2px 12px;cursor:pointer;font-family:var(--f-mono);font-size:20px;color:var(--s)}
+.seg button[aria-pressed="true"]{background:var(--y);color:var(--k)}
+.upg{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 12px 10px 24px;background:rgba(26,28,44,.6);border:3px solid transparent}
+.upg::before{content:"▶";position:absolute;left:7px;top:12px;font-size:12px;color:var(--y);opacity:0}
+.upg:hover::before,.upg:focus-within::before{opacity:1}
+.upg.can{border-color:var(--y)}
+.upg.need{border-color:var(--o)}
+.upg .name{font-weight:600;font-size:16px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.upg .lv{font-family:var(--f-mono);font-size:18px;color:var(--s);font-weight:400}
+.upg .eff{font-size:14px;color:var(--s);grid-column:1}
+.upg .eff b{color:var(--w);font-weight:500}
+.upg .btn{grid-row:1/span 2;grid-column:2;min-width:108px;font-family:var(--f-mono);font-size:20px;line-height:1;text-transform:none;padding:8px 10px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;font-size:12px;color:var(--s);font-weight:500;padding:4px 6px;border-bottom:3px solid var(--k)}
+td{padding:5px 6px;border-bottom:2px solid rgba(26,28,44,.6)}
+td.n,th.n{text-align:right;font-family:var(--f-mono);font-size:18px}
+.unknown td{color:var(--d)}
+.sw{display:inline-block;width:10px;height:10px;margin-right:8px;vertical-align:-1px;transform:rotate(45deg)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:rgba(26,28,44,.6);border:3px solid var(--k);padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.stat .v{font-family:var(--f-mono);font-size:24px;line-height:1}
+.stat .v.shard{color:var(--a)}
+/* skill tree */
+.branch-heads{display:grid;grid-template-columns:repeat(4,1fr);text-align:center}
+.branch-heads span{font-family:var(--f-display);font-size:7px;line-height:1.5;color:var(--s)}
+.tree{position:relative;width:100%}
+.tree svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.tree line{stroke:var(--k);stroke-width:3}
+.tree line.on{stroke:var(--y)}
+.node{position:absolute;transform:translate(-50%,-26px);width:25%;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;cursor:pointer;padding:0}
+.node .gem{width:46px;height:46px;transform:rotate(45deg);border:3px solid var(--k);background:var(--m);display:grid;place-items:center;box-shadow:3px 3px 0 rgba(0,0,0,.4)}
+.node .gem span{transform:rotate(-45deg);font-family:var(--f-mono);font-size:18px;color:var(--s)}
+.node .nm{font-size:12px;line-height:1.15;text-align:center;color:var(--s);max-width:100%}
+.node.avail .gem{border-color:var(--a)}
+.node.avail .gem span{color:var(--a)}
+.node.afford .gem{animation:bob 1s steps(2) infinite}
+.node.own .gem{background:var(--y);border-color:#c9963f}
+.node.own .gem span{color:var(--k)}
+.node.own .nm{color:var(--w)}
+.node.locked{opacity:.5}
+.node.sel .gem{outline:3px solid var(--w);outline-offset:4px}
+.detail{background:rgba(26,28,44,.6);border:3px solid var(--k);padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.detail .t{font-weight:600;font-size:16px}
+/* shipyard */
+.yard-view{position:relative;height:220px;margin-top:12px;border:3px solid var(--k);background:var(--k);overflow:hidden}
+#yv{width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.yard-cap{position:absolute;left:10px;top:8px;z-index:2;display:flex;flex-direction:column;gap:2px;pointer-events:none}
+.yard-cap h2{margin:0;font-family:var(--f-display);font-size:14px;line-height:1.4;color:var(--w);text-shadow:2px 2px 0 var(--k)}
+.yard-cap p{margin:0;font-size:13px;color:var(--s);text-shadow:1px 1px 0 var(--k)}
+.stage{background:rgba(26,28,44,.6);border:3px solid var(--k);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.stage.current{border-color:var(--a)}
+.stage.built .t{color:var(--s)}
+.stage-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.stage-h .t{font-weight:600}
+.pill{font-family:var(--f-mono);font-size:17px;line-height:1.1;text-transform:uppercase;padding:0 8px;border:2px solid var(--d);color:var(--s);white-space:nowrap}
+.pill.built{color:var(--l);border-color:var(--l)}
+.pill.ready{color:var(--a);border-color:var(--a);animation:blink 1s steps(2) infinite}
+.mat{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;font-size:14px;align-items:center}
+.mat .bar{grid-column:1/-1;height:12px;border-width:2px}
+.mat .bar i{background:repeating-linear-gradient(90deg,var(--a) 0 6px,var(--c) 6px 8px)}
+.mat .q{font-family:var(--f-mono);font-size:17px;color:var(--s)}
+.stage .rw{font-size:14px;color:var(--s)}
+.stage .rw b{color:var(--w);font-weight:500}
+#launchBtn{font-size:14px;padding:16px;animation:blink 1s steps(2) infinite}
+
+/* ---------- treasure draft ---------- */
+.draft{position:fixed;inset:0;z-index:25;background:rgba(13,14,24,.85);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.draft-in{width:min(680px,100%);display:flex;flex-direction:column;gap:12px;margin:auto;padding:16px;position:relative}
+.draft-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.draft-head .lbl{color:var(--y)}
+.draft-head h2{margin:0;font-family:var(--f-display);font-size:14px;line-height:1.5;color:var(--w);text-shadow:2px 2px 0 var(--k)}
+.cards{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:10px}
+@media (max-width:560px){.cards{grid-template-columns:1fr}}
+.card{background:var(--k);border:3px solid var(--d);border-top:6px solid var(--rc);padding:10px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-width:0;box-shadow:var(--bevel)}
+.card:hover,.card:focus-visible{border-color:var(--rc);transform:translateY(-3px)}
+.card .rar{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--rc);display:flex;justify-content:space-between;gap:8px}
+.card .rar kbd{font-family:var(--f-mono);font-size:16px;color:var(--d)}
+.card .cn{font-family:var(--f-display);font-size:10px;line-height:1.5}
+.card .cd{font-size:14px;color:var(--s)}
+.card .own{font-family:var(--f-mono);font-size:16px;color:var(--d);margin-top:auto}
+#draftSell{align-self:flex-start}
+.draft.arming .cards,.draft.arming #draftSell{opacity:.4;pointer-events:none}
+.draft-in::before{content:"";position:absolute;left:-4px;right:-4px;top:-14px;height:4px;background:var(--a);transform-origin:left;opacity:0}
+.draft.arming .draft-in::before{opacity:1;animation:arm .8s steps(8) forwards}
+@keyframes arm{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+/* ---------- claim map ---------- */
+.cmap{position:fixed;inset:0;z-index:40;background:rgba(13,14,24,.88);display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto}
+.cmap-in{width:min(860px,100%);margin-block:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:repeating-linear-gradient(180deg,#29366f 0 3px,#26306a 3px 6px);border:4px solid var(--w);box-shadow:0 0 0 4px var(--k),inset 0 0 0 3px var(--b),8px 8px 0 4px rgba(0,0,0,.45)}
+.cmap-h{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.cmap-h>div{flex:1;min-width:0}
+.cmap-h .lbl{color:var(--o)}
+.cmap-h h2{margin:4px 0 0;font-family:var(--f-display);font-size:14px;line-height:1.5;color:var(--y);text-shadow:2px 2px 0 var(--k)}
+.cmap-shards{color:var(--y);align-self:center}
+.cmap-note{margin:0;font-size:15px;color:var(--s)}
+.cmap-view{position:relative;width:100%;aspect-ratio:16/7;max-height:300px;border:4px solid var(--k);box-shadow:inset 0 0 0 2px var(--d);overflow:hidden;background:var(--1)}
+.cmap-view canvas{width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.pin{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;display:grid;place-items:center;padding:0;font-family:var(--f-display);font-size:9px;background:var(--m);color:var(--s);border:3px solid var(--k);box-shadow:2px 2px 0 var(--k);cursor:pointer}
+.pin.own{background:var(--y);color:var(--k)}
+.pin.cur{animation:bob 1s steps(2) infinite;outline:3px solid var(--a);outline-offset:2px}
+.pin.sel{background:var(--w);color:var(--k)}
+.cmap-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.ccard{background:rgba(26,28,44,.7);border:3px solid var(--k);padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-width:0;box-shadow:var(--bevel)}
+.ccard.own{border-color:var(--d)}
+.ccard.cur{border-color:var(--a)}
+.ccard.sel{border-color:var(--y)}
+.ccard.locked .t{color:var(--s)}
+.ccard-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.ccard-h .t{font-family:var(--f-display);font-size:9px;line-height:1.6}
+.ccard .cd{margin:0;font-size:14px;color:var(--s)}
+.ccard .row{justify-content:flex-start}
+.veins{display:flex;flex-wrap:wrap;gap:3px}
+.vein{width:16px;height:16px;background:var(--oc);border:2px solid var(--k);font-family:var(--f-mono);font-size:13px;line-height:1;display:grid;place-items:center;color:var(--k)}
+.vein.rich{outline:2px solid var(--y)}
+.mods{display:flex;flex-wrap:wrap;gap:6px}
+.mods .chip{--rc:var(--o);font-size:12px}
+.vtag{font-family:var(--f-mono);font-size:15px;padding:0 5px;margin-left:6px;white-space:nowrap;border:2px solid}
+.vtag.rich{color:var(--y)}
+.vtag.barren{color:var(--d)}
+
+/* ---------- ending, toast ---------- */
+.ending{position:fixed;inset:0;z-index:35;background:rgba(5,7,12,.9);display:flex;align-items:center;justify-content:center;padding:16px}
+.ending-in{width:min(560px,100%);padding:22px;display:flex;flex-direction:column;gap:14px}
+.ending-in h2{margin:0;font-family:var(--f-display);font-size:clamp(16px,4vw,24px);line-height:1.4;color:var(--y);text-shadow:3px 3px 0 var(--r)}
+.ending-in p{margin:0;color:var(--s)}
+.ending-in .lbl{color:var(--a)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(520px,calc(100% - 32px));padding:14px 16px;display:flex;gap:14px;align-items:center;z-index:28}
+.toast p{margin:0;flex:1;font-size:15px}
+
+/* ---------- title + story ---------- */
+.title,.intro{position:fixed;inset:0;z-index:50;background:var(--k);overflow:hidden}
+.title canvas,.intro canvas{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.title-top{position:absolute;left:0;right:0;top:calc(9vh + env(safe-area-inset-top,0px));display:flex;flex-direction:column;align-items:center;gap:16px;padding-inline:16px;text-align:center;pointer-events:none}
+.title-in{position:absolute;inset:auto 0 0 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:14px;padding:16px 16px calc(40px + env(safe-area-inset-bottom,0px));text-align:center}
+.title-kick{margin:0;font-family:var(--f-display);font-size:9px;line-height:1.6;color:var(--o);text-shadow:2px 2px 0 var(--k)}
+.title-logo{margin:0;font-family:var(--f-display);font-weight:400;font-size:clamp(26px,8vw,58px);line-height:1.15;color:var(--y);text-shadow:4px 4px 0 var(--r),8px 8px 0 var(--k)}
+.title-logo span{display:block;font-size:.42em;color:var(--a);text-shadow:3px 3px 0 var(--k);margin-top:10px}
+.title-sub{margin:0;font-family:var(--f-mono);font-size:21px;color:var(--w);text-shadow:2px 2px 0 var(--k);min-height:1.2em}
+.title-btns{display:flex;flex-direction:column;gap:10px;width:min(320px,100%)}
+.title-btns .btn{font-size:11px;padding:14px}
+.title-foot{margin:0;font-size:13px;color:var(--s);text-shadow:1px 1px 0 var(--k)}
+.intro-box{position:absolute;left:16px;right:16px;bottom:calc(24px + env(safe-area-inset-bottom,0px));max-width:720px;margin:0 auto;padding:16px 18px 14px;display:flex;flex-direction:column;gap:10px}
+.intro-box p{margin:0;font-size:clamp(17px,2.6vw,21px);line-height:1.4;min-height:4.2em}
+.intro-tap{align-self:flex-end;font-family:var(--f-display);font-size:8px;color:var(--y);animation:blink 1s steps(2) infinite}
+.intro-skip{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:16px;z-index:2}
+.intro-dots{display:flex;gap:6px}
+.intro-dots i{width:10px;height:10px;background:var(--m);border:2px solid var(--k)}
+.intro-dots i.on{background:var(--y)}
+@media (max-width:560px){
+  .tstats dd{font-size:21px}
+  .tstats{gap:2px 12px;margin-left:0}
+  .meter .lbl .word{display:none}
+  .meter .val{font-size:16px}
+  .console-bar{gap:8px;padding-block:8px calc(8px + env(safe-area-inset-bottom,0px))}
+  .hotbar button{padding:6px 2px 4px;font-size:11px}
+  .hotbar .pxi{width:24px;height:24px}
+  .boons .empty{display:none}
+  .tab[aria-selected="true"]::before{content:none}
+}
+.tab{white-space:nowrap}
+.warns{bottom:46px}
+@media (prefers-reduced-motion:reduce){
+  .mk,.hint,.fullwarn,#rPermit.low,.pill.ready,#launchBtn,.node.afford .gem,.intro-tap{animation:none}
+  .card:hover{transform:none}
+}
+</style>
+</head>
+<body>
+<div class="game" id="game">
+  <header class="topbar">
+    <h1 class="logo">Deepcore<b>8-Bit</b></h1>
+    <span class="claim" id="claimNo">Claim #1</span>
+    <dl class="tstats">
+      <div><dt><i data-ico="coin"></i>Credits</dt><dd id="rCredits">0 cr</dd></div>
+      <div><dt>Income</dt><dd id="rIncome">0 cr/s</dd></div>
+      <div><dt><i data-ico="gem"></i>Shards</dt><dd id="rShards">0</dd></div>
+      <div><dt>Record</dt><dd id="rBest">0 m</dd></div>
+      <div><dt><i data-ico="clock"></i>Permit</dt><dd id="rPermit">25:00</dd></div>
+    </dl>
+  </header>
+
+  <section class="town" id="townBox" aria-label="Deepcore Camp on the surface">
+    <canvas id="town" aria-hidden="true"></canvas>
+    <div class="blds" id="blds"></div>
+  </section>
+
+  <section class="shaft" aria-label="Borehole">
+    <canvas id="cv" tabindex="0" role="button" aria-label="Borehole view. Click, tap or press space to hammer the drill. Tap buried treasure, or press E, to dig it out."></canvas>
+    <canvas id="cvText" class="txtlayer" aria-hidden="true"></canvas>
+    <div class="hud-depth">
+      <span class="lbl">Bit depth</span>
+      <span class="big" id="gDepth">0.0 m</span>
+      <span class="val" id="gSpeed">1.00 m/s</span>
+      <span class="val dim" id="gStrat">Topsoil · Coal</span>
+    </div>
+    <div class="hint" id="hint">Tap the rock to hammer the bit</div>
+    <div class="draft" id="draft" hidden role="dialog" aria-modal="false" aria-labelledby="draftTitle">
+      <div class="draft-in">
+        <div class="draft-head"><span class="lbl" id="draftKicker">Recovered</span><h2 id="draftTitle"></h2><span class="val dim" id="draftQueue"></span></div>
+        <div class="cards" id="cards"></div>
+        <button class="btn" id="draftSell" type="button"></button>
+      </div>
+    </div>
+    <div class="warns">
+      <button class="btn primary blast" id="blastBtn" type="button" hidden></button>
+      <div class="fullwarn" id="heatWarn" hidden>Bit overheated · cooling</div>
+      <div class="fullwarn" id="blockWarn" hidden></div>
+      <div class="fullwarn" id="fullWarn" hidden>Hopper full · sell ore</div>
+    </div>
+  </section>
+
+  <div class="ticker"><ol class="log" id="log" aria-live="polite"></ol></div>
+  <div class="boons" id="boons"></div>
+
+  <footer class="console-bar">
+    <div class="meters">
+      <div class="meter"><span class="lbl"><i data-ico="cart"></i><span class="word">Hopper</span></span><div class="bar" id="hopBar" aria-label="Hopper"><i id="gHopBar"></i></div><span class="val" id="gHop">0 / 40</span></div>
+      <div class="meter"><span class="lbl"><i data-ico="flame"></i><span class="word">Heat</span></span><div class="bar" id="heatBar" aria-label="Bit heat"><i id="gHeatBar"></i></div><span class="val" id="gHeat">40 °C</span></div>
+    </div>
+    <div class="acts">
+      <button class="btn primary" id="sellBtn" type="button">Sell ore · <span id="sellVal">0</span> cr<span id="sellBonus"></span></button>
+      <button class="btn ship" id="shipBtn" type="button">Nothing in the hopper the yard needs</button>
+    </div>
+    <nav class="hotbar" aria-label="Camp buildings">
+      <button type="button" data-open="rig"><i data-ico="gear"></i><span>Workshop</span><b class="mk" data-mk="rig" hidden>!</b></button>
+      <button type="button" data-open="ore"><i data-ico="sack"></i><span>Assay</span><b class="mk" data-mk="ore" hidden>!</b></button>
+      <button type="button" data-open="skills"><i data-ico="book"></i><span>Archive</span><b class="mk" data-mk="skills" hidden>!</b></button>
+      <button type="button" data-open="prestige"><i data-ico="flag"></i><span>Claims</span><b class="mk" data-mk="prestige" hidden>!</b></button>
+      <button type="button" data-open="yard"><i data-ico="rocket"></i><span>Shipyard</span><b class="mk" data-mk="yard" hidden>!</b><i class="dot" id="dotYard" hidden></i></button>
+    </nav>
+  </footer>
+</div>
+
+<div class="scrim" id="winScrim" hidden>
+  <div class="win" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="win-h"><h2 id="winTitle">Workshop</h2><button class="win-x" id="winClose" type="button" aria-label="Close window">X</button></div>
+    <div class="win-b">
+      <div id="siteScreen">
+        <nav class="tabs" role="tablist">
+          <button class="tab" role="tab" id="tab-rig" aria-selected="true" data-tab="rig" type="button">Workshop</button>
+          <button class="tab" role="tab" id="tab-ore" aria-selected="false" data-tab="ore" type="button">Assay</button>
+          <button class="tab" role="tab" id="tab-skills" aria-selected="false" data-tab="skills" type="button">Archive<i class="dot" id="dotSkills" hidden></i></button>
+          <button class="tab" role="tab" id="tab-prestige" aria-selected="false" data-tab="prestige" type="button">Claims<i class="dot" id="dotPrestige" hidden></i></button>
+        </nav>
+
+        <div class="panel" id="p-rig" role="tabpanel">
+          <div class="row"><p>Deeper rock pays more and fights back harder.</p>
+            <div class="seg" role="group" aria-label="Buy amount">
+              <button type="button" data-buy="1" aria-pressed="true">×1</button><button type="button" data-buy="10" aria-pressed="false">×10</button><button type="button" data-buy="max" aria-pressed="false">Max</button>
+            </div>
+          </div>
+          <div id="upgList" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+
+        <div class="panel" id="p-ore" role="tabpanel" hidden>
+          <h3>Hopper contents</h3>
+          <div class="tablewrap"><table><thead><tr><th>Mineral</th><th class="n">Loads</th><th class="n">Price</th><th class="n">Worth</th></tr></thead><tbody id="oreBody"></tbody></table></div>
+          <h3>Formation log</h3>
+          <div class="tablewrap"><table><thead><tr><th>Formation</th><th>Mineral</th><th class="n">Top</th><th>Bit needed</th><th class="n">Base price</th></tr></thead><tbody id="codexBody"></tbody></table></div>
+        </div>
+
+        <div class="panel" id="p-skills" role="tabpanel" hidden>
+          <div class="row"><p>Spend core shards. Skills are permanent and survive every prestige.</p><span class="val" style="color:var(--a)" id="skShards">0 shards</span></div>
+          <div class="branch-heads"><span>Drilling</span><span>Geology</span><span>Commerce</span><span>Engineering</span></div>
+          <div class="tree" id="tree"><svg id="treeSvg" aria-hidden="true"></svg></div>
+          <div class="detail" id="detail"></div>
+        </div>
+
+        <div class="panel" id="p-prestige" role="tabpanel" hidden>
+          <p>When the storm closes in, seal this shaft and stake a new claim. You keep core shards, skills and your record depth. Credits, ore, rig upgrades and this claim's finds reset. The shipyard keeps everything you shipped. Every shard you have ever earned keeps boosting drill speed, with diminishing returns: 10 shards give ×2.3, 100 give ×5, 1,000 give ×11.</p>
+          <div class="stats">
+            <div class="stat"><span class="lbl">Deepest this claim</span><span class="v" id="pDepth">0 m</span></div>
+            <div class="stat"><span class="lbl">Shards on sealing</span><span class="v shard" id="pGain">0</span></div>
+            <div class="stat"><span class="lbl">Next shard at</span><span class="v" id="pNext">300 m</span></div>
+            <div class="stat"><span class="lbl">Shard bonus now</span><span class="v" id="pBonus">×1.00</span></div>
+          </div>
+          <button class="btn shard" id="prestigeBtn" type="button">Seal shaft</button>
+          <h3>Career</h3>
+          <div class="stats">
+            <div class="stat"><span class="lbl">Claims sealed</span><span class="v" id="sClaims">0</span></div>
+            <div class="stat"><span class="lbl">Lifetime earnings</span><span class="v" id="sLife">0 cr</span></div>
+            <div class="stat"><span class="lbl">Treasures dug out</span><span class="v" id="sFinds">0</span></div>
+            <div class="stat"><span class="lbl">Best find</span><span class="v" id="sBest">0 cr</span></div>
+          </div>
+          <h3>Save</h3>
+          <p>Progress saves in this browser every few seconds. The rig keeps drilling at half speed while you are away, for up to 8 hours. The permit clock only runs while the game is open.</p>
+          <button class="btn danger" id="wipeBtn" type="button" style="align-self:flex-start">Wipe save</button>
+          <p class="edition-link">Also available: <a href="classic.html">the Classic edition</a>.</p>
+        </div>
+      </div>
+
+      <div id="yardScreen" hidden>
+        <section class="yard-view" aria-label="Launch pad">
+          <canvas id="yv" aria-hidden="true"></canvas>
+          <canvas id="yvText" class="txtlayer" aria-hidden="true"></canvas>
+          <div class="yard-cap"><span class="lbl">Escape vessel</span><h2>Meridian</h2><p id="shipStatus"></p></div>
+        </section>
+        <div class="panel">
+          <div class="row"><h3>Build stages</h3><span class="val dim" id="yardStock"></span></div>
+          <p>Ship ore from the hopper to fund the build. Shipped ore and finished stages are never reset, not even by prestige. Rare pockets carry the next formation's mineral, so some minerals arrive before you reach their layer.</p>
+          <button class="btn ship" id="shipBtn2" type="button">Nothing in the hopper the yard needs</button>
+          <button class="btn primary" id="launchBtn" type="button" hidden>Launch Meridian</button>
+          <div id="stages" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ending" id="ending" hidden role="dialog" aria-labelledby="endTitle">
+  <div class="ending-in">
+    <span class="lbl">Escape velocity reached</span>
+    <h2 id="endTitle">Meridian is away</h2>
+    <p>Kessra falls away behind you, its swollen sun shrinking to a red coin in the dark. The rig keeps running down there on its own: claims no longer expire, and the shipyard takes endless refits that make every future claim stronger.</p>
+    <div class="stats" id="endStats"></div>
+    <button class="btn primary" id="endOk" type="button">Continue in endless mode</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden><p id="toastText"></p><button class="btn primary" id="toastOk" type="button">Collect</button></div>
+
+<div class="title" id="title" hidden>
+  <canvas id="titleCv" aria-hidden="true"></canvas>
+  <div class="title-top">
+    <p class="title-kick">Kessra · year 2291</p>
+    <h2 class="title-logo">Deepcore<span>8-Bit</span></h2>
+  </div>
+  <div class="title-in">
+    <p class="title-sub" id="titleSave"></p>
+    <div class="title-btns">
+      <button class="btn primary" id="btnContinue" type="button">Continue</button>
+      <button class="btn" id="btnNew" type="button">New game</button>
+    </div>
+    <p class="title-foot">Tap the rock to dig · tap treasure to excavate</p>
+  </div>
+</div>
+
+<div class="intro" id="intro" hidden role="dialog" aria-label="Story">
+  <canvas id="introCv" aria-hidden="true"></canvas>
+  <button class="btn intro-skip" id="introSkip" type="button">Skip</button>
+  <div class="intro-box">
+    <div class="intro-dots" id="introDots"></div>
+    <p id="introLine" aria-live="polite"></p>
+    <span class="intro-tap" id="introTap">Tap to continue</span>
+  </div>
+</div>
+
+<script>
+
+(() => {
+const $ = s => document.querySelector(s);
+const SAVE_KEY = 'deepcore-rig-v3';
+const SAVE_VERSION = 3;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- formatting ---------- */
+const SUF = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+function fmt(n) {
+  if (!isFinite(n)) return '∞';
+  if (n < 0) return '-' + fmt(-n);
+  if (n < 1000) return n < 10 ? (Math.floor(n * 10) / 10).toString() : Math.floor(n).toString();
+  const e = Math.floor(Math.log10(n) / 3);
+  if (e < SUF.length) { const v = n / Math.pow(10, 3 * e); return (v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : v.toFixed(0)) + SUF[e]; }
+  return n.toExponential(2).replace('+', '');
+}
+function fmtRate(v) { if (v <= 0) return '0'; if (v >= 1000) return fmt(v); if (v >= 10) return v.toFixed(1); if (v >= 0.01) return v.toFixed(2); return v.toExponential(1); }
+function fmtDepth(d) { if (d < 100) return d.toFixed(1) + ' m'; if (d < 1e6) return Math.floor(d).toLocaleString('en-US') + ' m'; return fmt(d / 1000) + ' km'; }
+function fmtRuler(d) { if (d >= 10000) return (d / 1000).toFixed(d % 1000 === 0 ? 0 : 1) + 'k'; return (Math.round(d * 10) / 10).toString(); }
+function fmtDur(s) { const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60); return h ? `${h}h ${m}m` : `${m}m`; }
+function roman(n) { const r = [[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']]; let s = ''; for (const [v, c] of r) while (n >= v) { s += c; n -= v; } return s; }
+
+/* ---------- strata: hand-made to 18 km, then generated forever ---------- */
+const STRATA = [
+  { name: 'Topsoil',     mineral: 'Coal',     top: 0,     color: '#4a3a2a', ore: '#0c0c0c', value: 1 },
+  { name: 'Sandstone',   mineral: 'Copper',   top: 40,    color: '#9c6d45', ore: '#e08a3e', value: 4 },
+  { name: 'Limestone',   mineral: 'Iron',     top: 120,   color: '#8a8576', ore: '#a94632', value: 13 },
+  { name: 'Shale',       mineral: 'Silver',   top: 300,   color: '#464b55', ore: '#e4e8ee', value: 45 },
+  { name: 'Granite',     mineral: 'Gold',     top: 650,   color: '#876a66', ore: '#f6cb4c', value: 160 },
+  { name: 'Basalt',      mineral: 'Cobalt',   top: 1200,  color: '#2c3036', ore: '#4a7ee8', value: 560 },
+  { name: 'Gneiss',      mineral: 'Lithium',  top: 2000,  color: '#66606c', ore: '#f3ecff', value: 2000 },
+  { name: 'Kimberlite',  mineral: 'Diamond',  top: 3300,  color: '#34463f', ore: '#bdf4ff', value: 7200 },
+  { name: 'Peridotite',  mineral: 'Platinum', top: 5200,  color: '#4f6338', ore: '#d6dbe3', value: 26000 },
+  { name: 'Eclogite',    mineral: 'Iridium',  top: 8000,  color: '#6a3c3e', ore: '#b3c0ff', value: 95000 },
+  { name: 'Mantle Rock', mineral: 'Rhodium',  top: 12000, color: '#5a2e1f', ore: '#ffc6dd', value: 350000 },
+  { name: 'Magma Seam',  mineral: 'Painite',  top: 18000, color: '#6e2412', ore: '#ff5d3b', value: 1.3e6 },
+];
+const BASE_N = STRATA.length;
+const EX_ROCK = ['Xenolith Shelf', 'Hadean Crust', 'Primordial Plate', 'Abyssal Layer', 'Iron Rain Zone', 'Glass Mantle', 'Core Boundary', 'Lattice Deep'];
+const EX_MIN = ['Taaffeite', 'Musgravite', 'Grandidierite', 'Red Beryl', 'Jadeite', 'Benitoite', 'Poudretteite', 'Serendibite', 'Kyawthuite', 'Void Quartz', 'Stellarite', 'Aetherite', 'Chronium', 'Neutronium'];
+function stratum(i) {
+  while (STRATA.length <= i) {
+    const n = STRATA.length, p = STRATA[n - 1], k = n - BASE_N;
+    const hue = (k * 53 + 200) % 360;
+    const rockCycle = Math.floor(k / EX_ROCK.length), minCycle = Math.floor(k / EX_MIN.length);
+    STRATA.push({
+      name: EX_ROCK[k % EX_ROCK.length] + (rockCycle ? ' ' + roman(rockCycle + 1) : ''),
+      mineral: EX_MIN[k % EX_MIN.length] + (minCycle ? ' ' + roman(minCycle + 1) : ''),
+      top: Math.round(p.top * 1.42 / 100) * 100,
+      color: `hsl(${hue},20%,${20 + (k % 3) * 4}%)`,
+      ore: `hsl(${(hue + 160) % 360},85%,68%)`,
+      value: p.value * 3.6,
+    });
+  }
+  return STRATA[i];
+}
+function stratumAt(d) { let i = 0; while (stratum(i + 1).top <= d) i++; return i; }
+// continuous formation index: 4.5 = halfway through Granite
+function formIndex(d) { const i = stratumAt(d), a = stratum(i).top, b = stratum(i + 1).top; return i + (d - a) / (b - a); }
+function depthAtIndex(c) { const i = Math.floor(c), a = stratum(i).top, b = stratum(i + 1).top; return a + (c - i) * (b - a); }
+
+/* ---------- state ---------- */
+const DEFAULT = () => ({
+  v: SAVE_VERSION, credits: 0, depth: 0, maxDepth: 0, ore: {}, full: false,
+  up: { bit: 0, motor: 0, hopper: 0, conveyor: 0, refinery: 0, scanner: 0, coolant: 0, tools: 0 },
+  reached: 0, codex: 0, finds: 0, bestFind: 0,
+  heat: 0, overheat: false, blocked: 0,
+  boons: {}, drafts: [], charges: 0, blast: 0, breaches: 0, permit: 1500, shifts: 0, claim: 'dust', choosing: false,
+  stock: {}, ship: 0, launched: false, launchedAt: 0, refits: 0, started: Date.now(),
+  shards: 0, totalShards: 0, skills: {}, resonance: 0,
+  best: 0, prestiges: 0, lifetime: 0, clicks: 0,
+  log: [], savedAt: Date.now(),
+});
+let S = DEFAULT();
+
+/* ---------- skills ---------- */
+const SKILLS = [
+  { id: 'root', ab: 'FG', name: 'Field Geologist',  cost: 1,  col: 1.5, row: 0, req: [], desc: 'Drill speed +25%.' },
+  { id: 'd1', ab: 'HA', name: 'Hardened Alloys',    cost: 2,  col: 0, row: 1, req: ['root'], desc: 'Each Drill Bit level gives ×1.27 speed instead of ×1.22.' },
+  { id: 'd2', ab: 'PH', name: 'Percussion Hammer',  cost: 4,  col: 0, row: 2, req: ['d1'], desc: 'Hammering the rock by hand drills 3× as far, and every strike on buried treasure hits 2× harder.' },
+  { id: 'd3', ab: 'TR', name: 'Twin Rig',           cost: 10, col: 0, row: 3, req: ['d2'], desc: 'Drill speed ×2.' },
+  { id: 'd4', ab: 'TL', name: 'Thermal Lance',      cost: 25, col: 0, row: 4, req: ['d3'], desc: 'Every formation is 20% softer to cut than before.' },
+  { id: 'd5', ab: 'PB', name: 'Plasma Bore',        cost: 60, col: 0, row: 5, req: ['d4'], desc: 'Drill speed ×3.' },
+  { id: 'g1', ab: 'CL', name: 'Core Logging',       cost: 2,  col: 1, row: 1, req: ['root'], desc: 'Ore per meter +50%.' },
+  { id: 'g2', ab: 'PS', name: 'Pocket Sense',       cost: 5,  col: 1, row: 2, req: ['g1'], desc: 'Rare mineral pockets turn up 3× as often, and buried treasure 1.5× as often.' },
+  { id: 'g3', ab: 'DS', name: 'Deep Survey',        cost: 12, col: 1, row: 3, req: ['g2'], desc: 'Each new claim starts with half the Drill Bit levels you ended the last claim with.' },
+  { id: 'g4', ab: 'XL', name: 'Crystal Lattice',    cost: 30, col: 1, row: 4, req: ['g3'], desc: 'All ore is worth 2×.' },
+  { id: 'g5', ab: 'SM', name: 'Seismic Mapping',    cost: 70, col: 1, row: 5, req: ['g4'], desc: 'Pockets hold 25 loads instead of 10, and ore per meter ×2.' },
+  { id: 'c1', ab: 'BC', name: 'Bulk Contracts',     cost: 2,  col: 2, row: 1, req: ['root'], desc: 'Rig upgrades cost 15% less.' },
+  { id: 'c2', ab: 'HC', name: 'Haul Crew',          cost: 4,  col: 2, row: 2, req: ['c1'], desc: 'Each new claim starts with Hopper and Conveyor at level 3.' },
+  { id: 'c3', ab: 'FM', name: 'Futures Market',     cost: 10, col: 2, row: 3, req: ['c2'], desc: 'Ore sells for +50%.' },
+  { id: 'c4', ab: 'NS', name: 'Night Shift',        cost: 20, col: 2, row: 4, req: ['c3'], desc: 'Offline drilling runs at full speed, for up to 24 hours, and every claim permit lasts 5 minutes longer.' },
+  { id: 'c5', ab: 'SA', name: 'Shard Assay',        cost: 50, col: 2, row: 5, req: ['c4'], desc: 'Sealing a shaft yields +50% core shards.' },
+  { id: 'e1', ab: 'HS', name: 'Heat Sinks',         cost: 2,  col: 3, row: 1, req: ['root'], desc: 'The bit sheds heat 50% faster.' },
+  { id: 'e2', ab: 'TE', name: 'Thermal Edge',       cost: 5,  col: 3, row: 2, req: ['e1'], desc: 'Above 600 °C, hand strikes drill 2× as far. Ride the redline.' },
+  { id: 'e3', ab: 'FB', name: 'Field Brazing',      cost: 12, col: 3, row: 3, req: ['e2'], desc: 'A new bit tier every 5 Drill Bit levels instead of 6.' },
+  { id: 'e4', ab: 'SC', name: 'Shaped Charges',     cost: 28, col: 3, row: 4, req: ['e3'], desc: 'Cap rock no longer slows the bit, and treasure pings come 2× as often while stalled on a barrier.' },
+  { id: 'e5', ab: 'OB', name: 'Overbore',           cost: 65, col: 3, row: 5, req: ['e4'], desc: 'Break through barriers that need a bit one tier above yours.' },
+  { id: 'cap', ab: 'ME', name: 'Mantle Engine',     cost: 400, col: 1.5, row: 6, req: ['d5', 'g5', 'c5', 'e5'], desc: 'Drill speed and ore prices ×5. Core shards ×2.' },
+  { id: 'res', ab: 'CR', name: 'Core Resonance',    cost: 250, col: 1.5, row: 7, req: ['cap'], repeat: true, desc: 'Drill speed ×1.5 per rank. Each rank costs 2.5× the last.' },
+];
+const SK = Object.fromEntries(SKILLS.map(s => [s.id, s]));
+const has = id => !!S.skills[id];
+function skillCost(s) { return s.repeat ? Math.ceil(s.cost * Math.pow(2.5, S.resonance)) : s.cost; }
+function skillOpen(s) { return s.req.every(has) && (s.repeat || !has(s.id)); }
+
+/* ---------- derived numbers ---------- */
+// Balance: each formation multiplies hardness by 3 at the surface, ramping to 8 deep down.
+// Ore value only grows ×3.6 per formation, so the wall always wins in the end and depth grows ever more slowly.
+const shardBonus = () => Math.pow(1 + S.totalShards, 0.35);
+const globalMult = () => has('cap') ? 5 : 1;
+const speedBoost = () => Math.pow(1.5, S.resonance) * shardBonus();
+const bitStep = () => has('d1') ? 1.27 : 1.22;
+const rawSpeed = () => (1 + 0.6 * S.up.motor) * Math.pow(bitStep(), S.up.bit) * (has('root') ? 1.25 : 1) * (has('d3') ? 2 : 1) * (has('d5') ? 3 : 1) * globalMult() * speedBoost() * boonMult('speed') * (1 + 0.03 * S.breaches * stackWorth(S.boons.resonant || 0)) * shipSpeed();
+const hardFactor = i => Math.min(11.5, 3 + 0.85 * i) * (has('d4') ? 0.8 : 1);
+const logHardCache = { d4: null, v: [0] };
+function logHardBefore(i) {
+  const c = logHardCache, key = has('d4');
+  if (c.d4 !== key) { c.d4 = key; c.v = [0]; }
+  while (c.v.length <= i) c.v.push(c.v[c.v.length - 1] + Math.log(hardFactor(c.v.length - 1)));
+  return c.v[i];
+}
+// Hardness steps up at each formation contact; the top 10% of every formation is cap rock at up to 2.5× on top of that.
+const CAP_BAND = 0.1;
+const capRock = f => 1 + 1.5 * Math.max(0, 1 - f / CAP_BAND);
+function hardness(d) {
+  const c = formIndex(d), i = Math.floor(c);
+  return Math.exp(logHardBefore(i) + 0.5 * (Math.log(hardFactor(i)) - Math.log(hardFactor(0)))) * (i > 0 && !has('e4') ? capRock(c - i) : 1) * claimMod('hard');
+}
+
+// Barriers: formation i can only be entered with a bit of tier i-1 or better. A new bit tier every 6 Drill Bit levels.
+const tierLevels = () => has('e3') ? 5 : 6;
+const bitTier = L => Math.floor(L / tierLevels());
+const reachTier = L => bitTier(L) + (has('e5') ? 1 : 0); // highest barrier tier this bit can cut
+const neededBit = i => Math.max(0, barrierTier(i) - (has('e5') ? 1 : 0)); // bit tier the player must own to enter formation i
+const barrierTier = i => Math.max(0, i - 1);
+function bitName(t) { const b = BIT_NAMES[t % BIT_NAMES.length], c = Math.floor(t / BIT_NAMES.length); return c ? `${b} Mk ${roman(c + 1)}` : b; }
+
+// Heat: manual strikes heat the bit; overheating halts all drilling until it cools to 15%.
+// coolant has diminishing returns: at most ×1.6 cooling and ÷1.5 heat per strike
+const coolantFrac = () => 1 - Math.pow(0.85, S.up.coolant);
+const heatPerStrike = () => 0.06 / (1 + 0.5 * coolantFrac()) * boonMult('heat') * claimMod('heat');
+const heatShed = () => 0.12 * (1 + 0.6 * coolantFrac()) * (has('e1') ? 1.5 : 1) * boonMult('cool');
+const toCelsius = h => 40 + h * 1160;
+const speedAt = d => rawSpeed() / hardness(d);
+const cap = () => 40 * Math.pow(1.3, S.up.hopper) * boonMult('cap');
+const yieldPerM = () => (1 + 0.15 * S.up.scanner) * (has('g1') ? 1.5 : 1) * (has('g5') ? 2 : 1) * boonMult('yield') * (S.ship >= 4 ? 1.5 : 1);
+const valueMult = () => Math.pow(1.15, S.up.refinery) * (has('g4') ? 2 : 1) * (has('c3') ? 1.5 : 1) * globalMult() * boonMult('price') * Math.pow(1.25, S.refits) * claimMod('value');
+const price = i => stratum(+i).value * valueMult();
+const pocketChance = () => 0.003 * (1 + 1.5 * (1 - Math.pow(0.85, S.up.scanner))) * (has('g2') ? 3 : 1) * boonMult('pocket');
+const pocketSize = () => (has('g5') ? 25 : 10) * boonMult('pocketSize');
+const convShare = () => Math.min(1, 0.04 * S.up.conveyor);
+function hopperTotal() { let t = 0; for (const k in S.ore) t += S.ore[k]; return t; }
+// hand-selling a hopper load earns a bulk premium that grows with hopper size; the conveyor never gets it
+// Hand sales earn a bulk premium that grows with hopper size but only pays in full on a full hopper,
+// so a bigger hopper means a bigger payout if you wait for it to fill (the drill stops when it does).
+const maxBulk = () => Math.pow(1.06, S.up.hopper);
+const hopperFill = () => Math.min(1, hopperTotal() / cap());
+const bulkPremium = () => (1 + (maxBulk() - 1) * hopperFill()) * boonMult('hand');
+function hopperWorth() { let t = 0; for (const k in S.ore) t += S.ore[k] * price(k); return t * bulkPremium(); }
+function shardMult() { return (has('c5') ? 1.5 : 1) * (has('cap') ? 2 : 1); }
+// shards grow ×1.4 per formation reached
+function shardsFor(d) { return d < 300 ? 0 : Math.max(1, Math.floor(2 * Math.pow(1.3, formIndex(d) - 5) * shardMult())); }
+function depthForShards(n) { return depthAtIndex(Math.max(0, 5 + Math.log(n / (2 * shardMult())) / Math.log(1.3))); }
+
+/* ---------- upgrades ---------- */
+const BIT_NAMES = ['Steel', 'Tungsten', 'Carbide', 'PDC', 'Diamond', 'Boron Nitride', 'Plasma-edge', 'Graviton', 'Singularity'];
+const UPGS = [
+  { id: 'bit', name: 'Drill Bit', base: 10, g: 1.55,
+    eff: L => `Tier ${bitTier(L)} <b>${bitName(bitTier(L))}</b> bit, cuts down to ${stratum(reachTier(L) + 1).name}, speed <b>×${fmt(Math.pow(bitStep(), L))}</b>`,
+    next: () => {
+      const L = S.up.bit, t = bitTier(L + 1);
+      return t > bitTier(L) ? `<b>${bitName(t)}</b> bit, breaks into ${stratum(t + (has('e5') ? 1 : 0) + 1).name}`
+        : `×${bitStep().toFixed(2)} speed, ${tierLevels() - (L % tierLevels())} levels to ${bitName(bitTier(L) + 1)}`;
+    } },
+  { id: 'motor', name: 'Mud Motor', base: 40, g: 1.5,
+    eff: L => `Torque <b>×${(1 + 0.6 * L).toFixed(1)}</b>`, next: () => '+0.6 torque' },
+  { id: 'hopper', name: 'Ore Hopper', base: 25, g: 1.75,
+    eff: L => `Holds <b>${fmt(cap())}</b> loads. Selling it full pays <b>+${fmt((maxBulk() - 1) * 100)}%</b>, less when partly full`, next: () => '×1.3 capacity, ×1.06 full-hopper premium' },
+  { id: 'conveyor', name: 'Conveyor', base: 300, g: 1.9, max: 25,
+    eff: L => L ? `Sends <b>${4 * L}%</b> of mined ore straight to market` : 'Not installed. All ore goes to the hopper', next: () => '+4% of ore to market' },
+  { id: 'refinery', name: 'Refinery', base: 150, g: 1.7,
+    eff: L => `Ore prices <b>×${fmt(Math.pow(1.15, L))}</b>`, next: () => '×1.15 prices' },
+  { id: 'scanner', name: 'Survey Scanner', base: 250, g: 1.8,
+    eff: L => `Ore per meter <b>+${15 * L}%</b>, pockets <b>×${(1 + 1.5 * (1 - Math.pow(0.85, L))).toFixed(2)}</b>, treasure pings <b>×${(1 + 0.5 * (1 - Math.pow(0.85, L))).toFixed(2)}</b>`, next: () => '+15% ore, more pockets' },
+  { id: 'coolant', name: 'Coolant Loop', base: 50, g: 1.6, max: 15,
+    eff: () => `Sheds <b>${Math.round(heatShed() * 1160)} °C/s</b>, strikes add <b>${Math.round(heatPerStrike() * 1160)} °C</b>, steady up to <b>${(heatShed() / heatPerStrike()).toFixed(1)}</b> strikes/s`,
+    next: () => 'cooler, with diminishing returns' },
+  { id: 'tools', name: 'Excavation Tools', base: 60, g: 2.0,
+    eff: L => `${TOOL_NAMES[toolTier(L)]}, <b>${fmtRate(1 + 0.35 * L)}</b> per strike`,
+    next: () => { const L = S.up.tools, t = toolTier(L + 1); return t > toolTier(L) ? `<b>${TOOL_NAMES[t]}</b>, opens ${TREASURES[t].plural}` : '+0.35 per strike'; } },
+];
+
+/* ---------- buried treasure ---------- */
+const TOOL_NAMES = ['Hand Pick', 'Jackhammer', 'Diamond Core Saw', 'Thermite Lance', 'Plasma Cutter', 'Graviton Splitter'];
+const TREASURES = [
+  { name: 'Ammonite Fossil',  plural: 'fossils',     tier: 0, hp: 12, loads: 40,    minF: 0,  time: 22, color: '#dcc9a2' },
+  { name: 'Amethyst Geode',   plural: 'geodes',      tier: 1, hp: 20, loads: 150,   minF: 2,  time: 24, color: '#a97de0' },
+  { name: 'Iron Meteorite',   plural: 'meteorites',  tier: 2, hp: 30, loads: 500,   minF: 4,  time: 26, color: '#9aa3b0' },
+  { name: 'Buried Reliquary', plural: 'reliquaries', tier: 3, hp: 45, loads: 1800,  minF: 6,  time: 28, color: '#f2c94c' },
+  { name: 'Xeno Artifact',    plural: 'xeno artifacts', tier: 4, hp: 65, loads: 7000, minF: 8, time: 30, color: '#5ef0e0' },
+  { name: 'Core Heart',       plural: 'core hearts', tier: 5, hp: 90, loads: 20000, minF: 10, time: 32, color: '#ff6a3d', shards: true },
+];
+const toolTier = L => Math.min(5, Math.floor(L / 4));
+let T = null, treasureClock = 20;
+function strikePower(t) {
+  const tier = toolTier(S.up.tools);
+  if (tier < t.tier) return 0;
+  return (1 + 0.35 * S.up.tools) * Math.pow(2, tier - t.tier) * (has('d2') ? 2 : 1) * boonMult('dig');
+}
+function treasureRate() { return (1 + 0.5 * (1 - Math.pow(0.85, S.up.scanner))) * (has('g2') ? 1.5 : 1) * (has('e4') && S.blocked ? 2 : 1) * boonMult('ping') * claimMod('ping') / 35; }
+function spawnTreasure() {
+  const f = formIndex(S.depth);
+  const pool = TREASURES.filter(t => t.minF <= f);
+  let tot = 0; const w = pool.map((t, k) => (tot += Math.pow(0.55, k)));
+  const r = Math.random() * tot, def = pool[w.findIndex(x => x >= r)];
+  const side = Math.random() < 0.5 ? -1 : 1;
+  T = { def, hp: def.hp * (1 + 0.12 * f), max: def.hp * (1 + 0.12 * f), left: def.time * boonMult('linger'), total: def.time * boonMult('linger'),
+        ox: side * (78 + Math.random() * 50), oy: -40 + Math.random() * 90, hit: 0, seed: Math.random() * 1000, x: 0, y: 0 };
+  const locked = toolTier(S.up.tools) < def.tier;
+  logEvt(`Scanner ping: ${def.name} beside the bit. ${locked ? `Needs a ${TOOL_NAMES[def.tier]} to dig out.` : 'Tap it to dig it out.'}`, 'pocket');
+}
+function treasureTick(step) {
+  if (T) {
+    T.left -= step;
+    if (T.left <= 0) { logEvt(`The ${T.def.name} slipped back into the wall.`, ''); T = null; }
+    return;
+  }
+  treasureClock -= step * treasureRate() * 35;
+  if (treasureClock <= 0) { treasureClock = 40 + Math.random() * 40; spawnTreasure(); }
+}
+function strike() {
+  if (!T || S.choosing) return;
+  const p = strikePower(T.def);
+  if (p <= 0) {
+    floaters.push({ text: `Needs ${TOOL_NAMES[T.def.tier]}`, x: T.x - 50, y: T.y - 46, life: 1, color: '#e8705f' });
+    shake = Math.max(shake, reduceMotion ? 0 : 1.5);
+    return;
+  }
+  T.hp -= p; T.hit = 0.15;
+  floaters.push({ text: `-${fmtRate(p)}`, x: T.x + 20, y: T.y - 20, life: 0.6, color: T.def.color });
+  burst(T.x, T.y, 'rgba(235,230,218,.6)', 4);
+  if (T.hp <= 0) {
+    const def = T.def, worth = 1.25 * def.loads * price(stratumAt(S.depth)) * yieldPerM();
+    S.finds++;
+    let extra = '';
+    if (def.shards) { const g = 1 + Math.floor(0.05 * shardsFor(S.maxDepth)); S.shards += g; S.totalShards += g; extra = ` It released ${g} core shard${g > 1 ? 's' : ''}.`; }
+    floaters.push({ text: `${def.name} recovered`, x: T.x - 60, y: T.y - 50, life: 2, color: def.color, big: true });
+    burst(T.x, T.y, def.color, 26);
+    shake = Math.max(shake, reduceMotion ? 0 : 6);
+    logEvt(`Dug out a ${def.name}.${extra} Choose what to keep.`, 'pocket');
+    S.drafts.push({ name: def.name, tier: def.tier, worth, options: rollOptions(def.tier) });
+    T = null;
+    showDraft();
+  }
+}
+/* ---------- finds: draft one of three upgrades from every treasure ---------- */
+const RARITY = [
+  { name: 'Common', color: 'var(--muted)' },
+  { name: 'Rare', color: 'var(--cool)' },
+  { name: 'Epic', color: 'var(--epic)' },
+  { name: 'Legendary', color: 'var(--hazard)' },
+];
+// rarity odds (%) by treasure tier: fossils are mostly common, core hearts are the legendary source
+const RARITY_ODDS = [[85, 14, 1, 0], [72, 23, 4, 1], [60, 30, 8, 2], [48, 35, 14, 3], [35, 40, 20, 5], [20, 40, 28, 12]];
+const CARDS = [
+  { id: 'teeth',    r: 0, name: 'Sharpened Teeth',    fx: { speed: 1.08 }, desc: 'Drill speed +8%.' },
+  { id: 'seam',     r: 0, name: 'Rich Seam',          fx: { yield: 1.08 }, desc: 'Ore per meter +8%.' },
+  { id: 'broker',   r: 0, name: 'Fair Broker',        fx: { price: 1.08 }, desc: 'Ore prices +8%.' },
+  { id: 'water',    r: 0, name: 'Cold Water',         fx: { cool: 1.12 }, desc: 'The bit cools 12% faster.' },
+  { id: 'pockets',  r: 0, name: 'Deep Pockets',       fx: { cap: 1.25 }, desc: 'Hopper holds 25% more.' },
+  { id: 'lucky',    r: 0, name: 'Lucky Strike',       fx: { pocket: 1.25 }, desc: 'Rare mineral pockets turn up 25% more often.' },
+  { id: 'overclock',r: 1, name: 'Overclocked Hammer', fx: { hammer: 1.4 }, desc: 'Hand strikes drill 40% farther.' },
+  { id: 'magnet',   r: 1, name: 'Magnet Rake',        fx: { ping: 1.25 }, desc: 'Treasure pings come 25% more often.' },
+  { id: 'heavypick',r: 1, name: 'Heavy Pick',         fx: { dig: 1.5 }, desc: 'Excavation strikes hit 50% harder.' },
+  { id: 'buyer',    r: 1, name: 'Bulk Buyer',         fx: { hand: 1.2 }, desc: 'Ore you sell by hand pays 20% more.' },
+  { id: 'fuse',     r: 1, name: 'Slow Collapse',      fx: { linger: 1.35 }, desc: 'Treasure stays in the wall 35% longer.' },
+  { id: 'shift',    r: 1, name: 'Extra Shift',        fx: {}, desc: 'Adds 1 minute to this claim\'s drilling permit. Up to 3 per claim.' },
+  { id: 'pistons',  r: 2, name: 'Twin Pistons',       fx: { speed: 1.35 }, desc: 'Drill speed +35%.' },
+  { id: 'smelter',  r: 2, name: 'Smelter Contract',   fx: { price: 1.35 }, desc: 'Ore prices +35%.' },
+  { id: 'resonant', r: 2, name: 'Resonant Core',      fx: {}, desc: 'Every formation you break into this claim adds +3% drill speed.' },
+  { id: 'exchanger',r: 2, name: 'Heat Exchanger',     fx: { heat: 0.7 }, desc: 'Hand strikes add 30% less heat.' },
+  { id: 'wildcat',  r: 2, name: 'Wildcat Survey',     fx: { pocket: 1.5, pocketSize: 1.5 }, desc: 'Pockets turn up 50% more often and hold 50% more.' },
+  { id: 'charge',   r: 3, name: 'Demolition Charge',  fx: {}, desc: 'One charge that blasts through any barrier. Detonate it while stalled.' },
+  { id: 'molten',   r: 3, name: 'Molten Core',        fx: {}, unique: true, desc: 'While the bit is above 600 °C, the rig drills 2× as fast on its own. One per claim.' },
+  { id: 'philo',    r: 3, name: "Philosopher's Bit",  fx: { speed: 1.4, price: 1.4 }, unique: true, desc: 'Drill speed and ore prices +40%. One per claim.' },
+  { id: 'splinter', r: 3, name: 'Shard Splinter',     fx: {}, desc: 'Gain core shards now: 1, plus 3% of what sealing this shaft would pay.' },
+];
+const CARD = Object.fromEntries(CARDS.map(c => [c.id, c]));
+// copies of the same card add up with diminishing returns: 1, 1.8, 2.44, 2.95… copies' worth, never more than 5
+const stackWorth = n => (1 - Math.pow(0.8, n)) / 0.2;
+function boonMult(key) {
+  let m = 1;
+  for (const id in S.boons) {
+    const v = CARD[id] && CARD[id].fx[key]; if (!v) continue;
+    const e = stackWorth(S.boons[id]);
+    m *= v >= 1 ? 1 + (v - 1) * e : 1 / (1 + (1 / v - 1) * e);
+  }
+  return m;
+}
+const moltenMult = () => S.boons.molten && S.heat > 0.48 ? 2 : 1;
+const MAX_SHIFTS = 3; // Extra Shift cards per claim, so treasure can't keep a claim open forever
+const cardOffered = c => !(c.unique && S.boons[c.id]) && !(c.id === 'shift' && S.shifts >= MAX_SHIFTS);
+function rollOptions(tier) {
+  const odds = RARITY_ODDS[Math.min(tier, RARITY_ODDS.length - 1)], picked = [];
+  for (let n = 0; n < draftSize(); n++) {
+    let r = Math.random() * 100, rar = 0;
+    while (rar < 3 && r >= odds[rar]) { r -= odds[rar]; rar++; }
+    let pool = CARDS.filter(c => c.r === rar && !picked.includes(c.id) && cardOffered(c));
+    if (!pool.length) pool = CARDS.filter(c => c.r <= rar && !picked.includes(c.id) && cardOffered(c));
+    picked.push(pool[Math.floor(Math.random() * pool.length)].id);
+  }
+  return picked;
+}
+// The draft opens mid-tap on phones, so its buttons ignore input for a moment;
+// otherwise the next tap on the treasure lands on whichever card replaced it.
+const DRAFT_ARM_MS = 800;
+let shownDraft = null, draftArmedAt = 0, draftArmTimer = 0;
+const draftArmed = () => performance.now() >= draftArmedAt;
+function armDraft() {
+  const el = $('#draft');
+  draftArmedAt = performance.now() + DRAFT_ARM_MS;
+  el.classList.remove('arming'); void el.offsetWidth; el.classList.add('arming');
+  clearTimeout(draftArmTimer);
+  draftArmTimer = setTimeout(() => el.classList.remove('arming'), DRAFT_ARM_MS);
+}
+function showDraft() {
+  const d = S.drafts[0], el = $('#draft');
+  if (!d) { el.hidden = true; shownDraft = null; return; }
+  if (d !== shownDraft) { shownDraft = d; armDraft(); }
+  $('#draftKicker').textContent = 'Recovered · pick one find';
+  $('#draftTitle').textContent = d.name;
+  $('#draftQueue').textContent = S.drafts.length > 1 ? `+${S.drafts.length - 1} more waiting` : '';
+  $('#cards').style.setProperty('--n', d.options.length);
+  $('#cards').innerHTML = d.options.map((id, k) => {
+    const c = CARD[id], rr = RARITY[c.r], own = id === 'charge' ? S.charges : S.boons[id] || 0;
+    return `<button type="button" class="card" data-k="${k}" style="--rc:${rr.color}">
+      <span class="rar">${rr.name}<kbd>${k + 1}</kbd></span><span class="cn">${c.name}</span><span class="cd">${c.desc}</span>
+      <span class="own">${id === 'shift' ? `Taken ${S.shifts} of ${MAX_SHIFTS} this claim` : own ? (id === 'charge' ? 'Charges held: ' + own : `Owned ×${own} · this copy adds ${Math.round((stackWorth(own + 1) - stackWorth(own)) * 100)}% of its effect`) : 'New'}</span></button>`;
+  }).join('');
+  $('#cards').querySelectorAll('.card').forEach(b => b.addEventListener('click', () => pickCard(+b.dataset.k)));
+  $('#draftSell').textContent = `Sell it instead · ${fmt(d.worth)} cr`;
+  el.hidden = false;
+}
+function pickCard(k) {
+  const d = S.drafts[0]; if (!d || !draftArmed()) return;
+  const id = d.options[k], c = CARD[id];
+  if (id === 'charge') S.charges++;
+  else if (id === 'shift') { if (S.shifts < MAX_SHIFTS) { S.shifts++; S.permit += 60; } }
+  else if (id === 'splinter') { const g = 1 + Math.floor(0.03 * shardsFor(S.maxDepth)); S.shards += g; S.totalShards += g; }
+  else S.boons[id] = (S.boons[id] || 0) + 1;
+  logEvt(`Kept ${c.name} from the ${d.name}.`, c.r >= 2 ? 'shard' : 'strata');
+  S.drafts.shift(); renderBoons(); showDraft(); uiTick(true);
+}
+function sellDraft() {
+  const d = S.drafts[0]; if (!d || !draftArmed()) return;
+  S.credits += d.worth; S.lifetime += d.worth;
+  if (d.worth > S.bestFind) S.bestFind = d.worth;
+  logEvt(`Sold the ${d.name} for ${fmt(d.worth)} cr.`, 'pocket');
+  S.drafts.shift(); showDraft(); uiTick(true);
+}
+function renderBoons() {
+  const ids = Object.keys(S.boons).filter(id => CARD[id] && S.boons[id] > 0).sort((a, b) => CARD[b].r - CARD[a].r);
+  const chips = ids.map(id => { const c = CARD[id]; return `<span class="chip" style="--rc:${RARITY[c.r].color}" title="${c.desc}">${c.name}${S.boons[id] > 1 ? ` <b>×${S.boons[id]}</b>` : ''}</span>`; });
+  if (S.charges) chips.unshift(`<span class="chip" style="--rc:var(--hazard)" title="${CARD.charge.desc}">Demolition Charge <b>×${S.charges}</b></span>`);
+  $('#boons').innerHTML = '<span class="lbl">Finds this claim</span>' + (chips.join('') || '<span class="empty">None yet. Dig out buried treasure to draft upgrades.</span>');
+}
+function detonate() {
+  if (!S.blocked || S.charges < 1 || S.blast) return;
+  S.charges--; S.blast = S.blocked;
+  shake = Math.max(shake, reduceMotion ? 0 : 10);
+  burst(drillX, headYpx + 20, '#f0b429', 40);
+  renderBoons(); uiTick(true);
+}
+const costOf = (u, L) => u.base * Math.pow(u.g, L) * (has('c1') ? 0.85 : 1);
+let buyMode = 1;
+function plan(u) {
+  const L = S.up[u.id]; let n = 0, total = 0;
+  const want = buyMode === 'max' ? 1000 : buyMode;
+  while (n < want) {
+    if (u.max && L + n >= u.max) break;
+    const c = costOf(u, L + n);
+    if (buyMode === 'max' && n > 0 && total + c > S.credits) break;
+    total += c; n++;
+    if (buyMode === 'max' && total > S.credits) break;
+  }
+  return { n, total };
+}
+function buy(u) {
+  const p = plan(u);
+  if (!p.n || p.total > S.credits) return;
+  S.credits -= p.total; S.up[u.id] += p.n;
+  uiTick(true);
+}
+
+/* ---------- log ---------- */
+function logEvt(text, kind) {
+  S.log.unshift({ d: S.depth, t: text, k: kind || '' });
+  if (S.log.length > 30) S.log.length = 30;
+  renderLog();
+}
+function renderLog() {
+  $('#log').innerHTML = S.log.slice(0, 6).map(e => `<li class="k-${e.k}"><time>${fmtDepth(e.d)}</time><span>${e.t}</span></li>`).join('')
+    || '<li><time>0.0 m</time><span>Rig assembled. Spud in and start drilling.</span></li>';
+}
+
+/* ---------- claims: where on Kessra you drill ---------- */
+// Each site carries veins down to a floor formation; below it the rock is barren. Some minerals run rich,
+// and each site has a quirk. Surveys are bought once with credits and kept for good; a new claim is staked on an owned site.
+// Mineral index by formation: 0 Coal, 1 Copper, 2 Iron, 3 Silver, 4 Gold, 5 Cobalt, 6 Lithium, 7 Diamond, 8 Platinum, 9 Iridium, 10 Rhodium, 11 Painite, 12 Taaffeite
+const CLAIMS = [
+  { id: 'dust',    name: 'Dustbowl Lease',  cost: 0,   floor: 4,  rich: { 1: 2 },          mods: {},                        x: 0.13, y: 0.64, blurb: 'A played-out homestead lease. Shallow copper, and nothing below the gold.' },
+  { id: 'rust',    name: 'Rustflat Basin',  cost: 1e4,   floor: 6,  rich: { 2: 2, 3: 2 },    mods: {},                        x: 0.27, y: 0.36, blurb: 'Iron-red flats over a fat silver seam.' },
+  { id: 'cobalt',  name: 'Cobalt Steppe',   cost: 4e6,   floor: 8,  rich: { 5: 2, 6: 2 },    mods: { hard: 0.85 },            x: 0.42, y: 0.7,  blurb: 'Fractured ground that cuts easily. Cobalt and lithium run thick.' },
+  { id: 'pipe',    name: 'Kimberlite Pipe', cost: 2e9,  floor: 9,  rich: { 7: 3 },          mods: { ping: 1.5 },             x: 0.55, y: 0.3,  blurb: 'An old volcanic pipe. Diamonds, and the things buried with them.' },
+  { id: 'shelf',   name: 'Eclogite Shelf',  cost: 2.5e11,  floor: 10, rich: { 8: 2, 9: 2 },    mods: { permit: -300, value: 1.4 }, x: 0.68, y: 0.66, blurb: 'Rich ground on the storm track. Ore sells well, but the permit runs short.' },
+  { id: 'rift',    name: 'Mantle Rift',     cost: 6e13,  floor: 12, rich: { 10: 2, 11: 2 },  mods: { heat: 1.3 },             x: 0.8,  y: 0.28, blurb: 'A crack down to the mantle. Rhodium and painite, and a bit that runs hot.' },
+  { id: 'caldera', name: 'Caldera Deep',    cost: 5e16, floor: 16, rich: { 11: 2, 12: 2 },  mods: { hard: 1.25, value: 1.5 }, x: 0.9,  y: 0.72, blurb: 'Hard rock over the richest seams on Kessra.' },
+  { id: 'abyss',   name: 'The Abyss',       cost: 5e19, floor: 1e9, rich: {},               mods: { all: 1.3 },              x: 0.5,  y: 0.12, blurb: 'No floor has ever been found. Every mineral, all the way down.' },
+];
+const CLAIM = Object.fromEntries(CLAIMS.map(c => [c.id, c]));
+const curClaim = () => CLAIM[S.claim] || CLAIMS[0];
+const claimMod = (k, d = 1) => (curClaim().mods[k] ?? d);
+// ore multiplier for a formation's mineral on the current claim: 0 = barren
+function veinMult(k) { const c = curClaim(); return k > c.floor ? 0 : (c.rich[k] || 1) * (c.mods.all || 1); }
+// saves from before claims existed: grant the sites that match the player's record, and drill the best one
+function migrateClaims() {
+  if (S.claimsOwned) return;
+  const f = formIndex(S.best || 0);
+  S.claimsOwned = { dust: 1 };
+  for (const c of CLAIMS) if (c.cost && c.floor <= f + 1.5) S.claimsOwned[c.id] = 1;
+  S.claim = CLAIMS.filter(c => S.claimsOwned[c.id]).pop().id;
+}
+
+/* ---------- simulation ---------- */
+const oreParts = i => i >= 2 ? [[i, .6], [i - 1, .25], [i - 2, .15]] : i === 1 ? [[1, .7], [0, .3]] : [[0, 1]];
+function addOre(i, units) {
+  for (const [k, f] of oreParts(i)) { const v = veinMult(k); if (v > 0) S.ore[k] = (S.ore[k] || 0) + units * f * v; }
+}
+// the conveyor skims its share of fresh cuttings straight to market
+function convey(i, units) {
+  let earned = 0;
+  for (const [k, f] of oreParts(i)) earned += units * f * veinMult(k) * price(k);
+  S.credits += earned; S.lifetime += earned;
+}
+function sellFraction(f) {
+  if (f <= 0) return 0;
+  let earned = 0;
+  const bulk = bulkPremium(); // fixed before the hopper empties
+  for (const k in S.ore) {
+    const amt = S.ore[k] * f;
+    earned += amt * price(k) * bulk;
+    S.ore[k] -= amt;
+    if (S.ore[k] < 1e-6) delete S.ore[k];
+  }
+  S.credits += earned; S.lifetime += earned;
+  return earned;
+}
+let lastPocketLog = 0, pendingPockets = null;
+function pocket(n, i, offline) {
+  const j = i + 1, units = n * pocketSize() * yieldPerM() * veinMult(j);
+  if (units <= 0) return; // no pockets in barren ground
+  S.ore[j] = (S.ore[j] || 0) + units;
+  if (offline) return;
+  floaters.push({ text: `${stratum(j).mineral} pocket +${fmt(units)}`, x: drillX + 18, y: headYpx - 10, life: 1.8, color: stratum(j).ore, big: true });
+  shake = Math.max(shake, 4);
+  const now = performance.now();
+  if (now - lastPocketLog > 2500) { logEvt(`Struck a ${stratum(j).mineral} pocket: +${fmt(units)} loads.`, 'pocket'); lastPocketLog = now; }
+}
+function drill(dm, offline) {
+  if (S.overheat || dm <= 0) return 0;
+  const conv = convShare(), keep = 1 - conv;
+  const room = cap() - hopperTotal();
+  if (room <= 0 && keep > 0) { S.full = true; return 0; }
+  S.full = false;
+  const y = yieldPerM();
+  // walk the bit forward: stall at any contact the bit can't cut, lose momentum entering harder rock
+  let pos = S.depth, left = dm, ground = 0, blocked = 0;
+  for (let guard = 0; left > 0 && guard < 60; guard++) {
+    const i = stratumAt(pos), nb = stratum(i + 1).top, eps = Math.max(1e-6, nb * 1e-9), gap = nb - pos;
+    if (left < gap - eps) { pos += left; left = 0; break; }
+    if (reachTier(S.up.bit) < barrierTier(i + 1) && S.blast !== i + 1) {
+      const stop = Math.max(pos, nb - eps);
+      ground = left - (stop - pos); pos = stop; left = 0; blocked = i + 1; break;
+    }
+    left = (left - gap) * hardness(nb - eps) / hardness(nb);
+    pos = nb;
+    if (S.blast === i + 1) { S.blast = 0; if (!offline) logEvt(`Charge fired. The ${stratum(i + 1).name} barrier is breached.`, 'pocket'); }
+  }
+  if (blocked && blocked !== S.blocked && !offline)
+    logEvt(`Bit stalled on the ${stratum(blocked).name} contact. A ${bitName(neededBit(blocked))} bit is needed to break through. Grinding the contact still brings up ore at the full rate.`, 'barrier');
+  S.blocked = blocked;
+  let moved = pos - S.depth, units = (moved + ground) * y;
+  if (keep > 0 && units * keep > room) { const s = room / (units * keep); moved *= s; units *= s; pos = S.depth + moved; }
+  if (units <= 0) return 0;
+  const i = stratumAt(S.depth);
+  S.depth = pos;
+  if (keep > 0) addOre(i, units * keep);
+  if (conv > 0) convey(i, units * conv);
+  const exp = moved * pocketChance(); let n = Math.floor(exp); if (Math.random() < exp - n) n++;
+  if (n > 0) pocket(n, i, offline);
+  dm = moved;
+  if (S.depth > S.maxDepth) S.maxDepth = S.depth;
+  if (S.depth > S.best) S.best = S.depth;
+  const j = stratumAt(S.depth);
+  if (j > S.reached) {
+    for (let k = S.reached + 1; k <= j; k++) {
+      const s = stratum(k);
+      if (!offline) logEvt(veinMult(k) > 0 ? `Breached ${s.name} at ${fmtDepth(s.top)}. ${s.mineral} in the cuttings.` : `Breached ${s.name} at ${fmtDepth(s.top)}. Below this site's vein floor the rock is barren.`, veinMult(k) > 0 ? 'strata' : 'barrier');
+    }
+    S.breaches += j - S.reached;
+    S.reached = j;
+    if (j > S.codex) S.codex = j;
+  }
+  return dm;
+}
+function tick(dt, offline) {
+  if (S.choosing) return; // between claims: nothing drills until a site is staked
+  let remaining = dt;
+  while (remaining > 0) {
+    const step = Math.min(1, remaining); remaining -= step;
+    drill(speedAt(S.depth) * step * moltenMult(), offline);
+    if (!offline) { treasureTick(step); coolTick(step); permitTick(step); }
+  }
+}
+function coolTick(step) {
+  S.heat = Math.max(0, S.heat - heatShed() * step);
+  if (S.overheat && S.heat <= 0.15) { S.overheat = false; logEvt('Bit cooled down. Drilling resumed.', ''); }
+}
+function hammer() {
+  if (S.choosing) return;
+  const fx = drillX - 80 + Math.random() * 30, fy = headYpx - 4;
+  if (S.overheat) { floaters.push({ text: 'Overheated', x: fx, y: fy, life: 0.9, color: '#e8705f' }); return; }
+  S.heat = Math.min(1, S.heat + heatPerStrike());
+  if (S.heat >= 1) {
+    S.overheat = true;
+    shake = Math.max(shake, reduceMotion ? 0 : 7);
+    logEvt(`Bit overheated at ${Math.round(toCelsius(1))} °C. All drilling halted until it cools.`, 'barrier');
+    return;
+  }
+  const redline = has('e2') && S.heat > 0.48;
+  const dm = (1 / hardness(S.depth) + 0.3 * speedAt(S.depth)) * (has('d2') ? 3 : 1) * (redline ? 2 : 1) * boonMult('hammer');
+  const done = drill(dm, false);
+  S.clicks++;
+  if (S.clicks === 15) $('#hint').hidden = true;
+  if (done > 0) {
+    floaters.push({ text: `+${fmtRate(done)} m`, x: fx, y: fy, life: 0.9, color: redline ? '#ff8a3d' : '#ebe6da' });
+    shake = Math.max(shake, reduceMotion ? 0 : 2.5);
+    for (let k = 0; k < 6; k++) spawnDebris();
+  } else if (S.blocked) {
+    floaters.push({ text: `Needs ${bitName(neededBit(S.blocked))} bit`, x: fx - 30, y: fy, life: 0.9, color: '#e8705f' });
+    for (let k = 0; k < 3; k++) spawnDebris();
+  } else {
+    floaters.push({ text: 'Hopper full', x: fx, y: fy, life: 0.9, color: '#e8705f' });
+  }
+}
+function newRun() {
+  const prevBit = S.up ? S.up.bit : 0;
+  S.credits = 0; S.ore = {}; S.full = false;
+  S.boons = {}; S.drafts = []; S.charges = 0; S.blast = 0; S.breaches = 0; S.shifts = 0;
+  S.permit = permitLength();
+  renderBoons(); showDraft();
+  S.up = { bit: 0, motor: 0, hopper: has('c2') ? 3 : 0, conveyor: has('c2') ? 3 : 0, refinery: 0, scanner: 0, coolant: 0, tools: 0 };
+  S.heat = 0; S.overheat = false; S.blocked = 0;
+  if (S.ship >= 1) S.up.bit = Math.max(S.up.bit, 6);
+  T = null; treasureClock = 20;
+  if (has('g3')) S.up.bit = Math.max(S.up.bit, Math.floor(prevBit / 2));
+  S.depth = 0;
+  S.maxDepth = S.depth;
+  S.reached = stratumAt(S.depth);
+  visDepth = S.depth;
+}
+function prestige() {
+  const g = shardsFor(S.maxDepth);
+  if (g < 1) return;
+  const from = S.maxDepth;
+  S.shards += g; S.totalShards += g; S.prestiges++;
+  S.choosing = true;
+  logEvt(`Sealed claim #${S.prestiges} at ${fmtDepth(from)} and recovered ${g} core shard${g > 1 ? 's' : ''}. Choose a site for the next claim.`, 'shard');
+  uiTick(true); save();
+  openClaimMap('seal');
+}
+// Drilling permit: each claim runs for a limited active time, then seals itself.
+const permitLength = () => 1500 + (has('c4') ? 300 : 0) + (S.ship >= 2 ? 180 : 0) + claimMod('permit', 0);
+function permitTick(step) {
+  if (S.launched) return;
+  const before = S.permit;
+  S.permit -= step;
+  for (const mark of [300, 60]) if (before > mark && S.permit <= mark) logEvt(`${mark / 60} minute${mark > 60 ? 's' : ''} left on the drilling permit.`, 'barrier');
+  if (S.permit <= 0) expireClaim();
+}
+function expireClaim() {
+  const g = shardsFor(S.maxDepth), from = S.maxDepth;
+  S.shards += g; S.totalShards += g; S.prestiges++;
+  S.choosing = true;
+  const msg = g > 0
+    ? `The storm sealed claim #${S.prestiges} at ${fmtDepth(from)}. It paid ${g} core shard${g > 1 ? 's' : ''}.`
+    : `The storm sealed the claim at ${fmtDepth(from)}, short of the 300 m needed for a core shard.`;
+  logEvt(msg + ' Choose a site for the next claim.', 'shard');
+  uiTick(true); save();
+  openClaimMap('storm', msg);
+}
+
+/* ---------- save / load ---------- */
+function save() {
+  S.savedAt = Date.now();
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}
+}
+function load() {
+  let raw = null;
+  try { raw = localStorage.getItem(SAVE_KEY); } catch (e) {}
+  if (!raw) return false;
+  try {
+    const d = JSON.parse(raw), base = DEFAULT();
+    if (d.v !== SAVE_VERSION) return false;
+    S = Object.assign(base, d, { up: Object.assign(base.up, d.up || {}) });
+    return true;
+  } catch (e) { return false; }
+}
+function offlineCatchUp() {
+  const elapsed = (Date.now() - (S.savedAt || Date.now())) / 1000;
+  if (elapsed < 30) return;
+  const capS = has('c4') ? 86400 : 28800, eff = has('c4') ? 1 : 0.5;
+  const t = Math.min(elapsed, capS) * eff;
+  const d0 = S.depth, c0 = S.lifetime;
+  tick(t, true);
+  const dd = S.depth - d0, earned = S.lifetime - c0;
+  if (dd > 0.5 || earned > 0) {
+    $('#toastText').innerHTML = `While you were away (${fmtDur(Math.min(elapsed, capS))}) the crew drilled <b>${fmtDepth(dd)}</b>` +
+      (earned > 0 ? ` and the conveyor sold <b>${fmt(earned)} cr</b> of ore.` : '.') + (S.full ? ' The hopper is full.' : '');
+    $('#toast').hidden = false;
+    logEvt(`Night crew report: +${fmtDepth(dd)} drilled while you were away.`, 'strata');
+  }
+}
+
+/* ---------- pixel engine ---------- */
+// The world is drawn into a buffer at 1/3 (1/2 on phones) of screen resolution, scaled up with hard
+// pixels, and every frame is dithered down to one fixed palette. Text goes to a crisp layer on top.
+const PALETTE = ['#1a1c2c','#5d275d','#b13e53','#ef7d57','#ffcd75','#a7f070','#38b764','#257179','#29366f','#3b5dc9','#41a6f6','#73eff7','#f4f4f4','#94b0c2','#566c86','#333c57',
+  '#2b1e1a','#5a3a2b','#8a5a3c','#c49a6c'];
+const PAL = PALETTE.map(h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]);
+const LUT = new Uint8Array(32768).fill(255);
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v / 16 - 0.47) * 34);
+function nearestColor(r, g, b) {
+  let best = 0, bd = Infinity;
+  for (let k = 0; k < PAL.length; k++) { const p = PAL[k], dr = r - p[0], dg = g - p[1], db = b - p[2], d = dr * dr * 0.3 + dg * dg * 0.59 + db * db * 0.11; if (d < bd) { bd = d; best = k; } }
+  return best;
+}
+function quantize(c, w, h) {
+  const img = c.getImageData(0, 0, w, h), d = img.data;
+  for (let y = 0; y < h; y++) {
+    const row = (y & 3) * 4;
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4, o = BAYER[row + (x & 3)];
+      let r = d[i] + o, g = d[i + 1] + o, b = d[i + 2] + o;
+      r = r < 0 ? 0 : r > 255 ? 255 : r; g = g < 0 ? 0 : g > 255 ? 255 : g; b = b < 0 ? 0 : b > 255 ? 255 : b;
+      const key = ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3);
+      let p = LUT[key]; if (p === 255) p = LUT[key] = nearestColor(r, g, b);
+      const q = PAL[p]; d[i] = q[0]; d[i + 1] = q[1]; d[i + 2] = q[2]; d[i + 3] = 255;
+    }
+  }
+  c.putImageData(img, 0, 0);
+}
+function pixelLayer(canvas, textCanvas) {
+  const base = canvas.getContext('2d', { willReadFrequently: true }), txt = textCanvas.getContext('2d');
+  const st = { pix: 3, w: 1, h: 1 };
+  const BOTH = new Set(['save', 'restore', 'translate', 'rotate', 'scale']);
+  const TEXT = new Set(['fillText', 'strokeText', 'measureText']);
+  const ctx = new Proxy({}, {
+    get(_, k) {
+      if (TEXT.has(k)) return txt[k].bind(txt);
+      if (BOTH.has(k)) return (...a) => { base[k](...a); txt[k](...a); };
+      const v = base[k]; return typeof v === 'function' ? v.bind(base) : v;
+    },
+    set(_, k, v) {
+      base[k] = k === 'lineWidth' ? Math.max(v, st.pix) : v; // never thinner than one real pixel
+      try { txt[k] = v; } catch (e) {}
+      return true;
+    },
+  });
+  return {
+    ctx,
+    resize(cssW, cssH) {
+      st.pix = cssW < 520 ? 2 : 3;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      st.w = Math.max(1, Math.round(cssW / st.pix)); st.h = Math.max(1, Math.round(cssH / st.pix));
+      canvas.width = st.w; canvas.height = st.h;
+      base.setTransform(1 / st.pix, 0, 0, 1 / st.pix, 0, 0); base.imageSmoothingEnabled = false;
+      textCanvas.width = Math.round(cssW * dpr); textCanvas.height = Math.round(cssH * dpr);
+      txt.setTransform(dpr, 0, 0, dpr, 0, 0);
+    },
+    begin() { txt.save(); txt.setTransform(1, 0, 0, 1, 0, 0); txt.clearRect(0, 0, textCanvas.width, textCanvas.height); txt.restore(); },
+    end() { quantize(base, st.w, st.h); },
+  };
+}
+
+/* ---------- canvas ---------- */
+const cv = $('#cv'), PL = pixelLayer(cv, $('#cvText')), ctx = PL.ctx;
+let W = 0, H = 0, DPR = 1;
+function resize() {
+  const r = cv.getBoundingClientRect();
+  W = r.width; H = r.height;
+  PL.resize(W, H);
+}
+new ResizeObserver(resize).observe(cv);
+
+let viewSpan = 40, visDepth = 0, shake = 0, spin = 0, lastFrame = 0, drillX = 0, headYpx = 0;
+const debris = [], floaters = [];
+function hash(a, b) {
+  let h = (Math.imul(a | 0, 374761393) + Math.imul(b | 0, 668265263)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+function nice(x) { const p = Math.pow(10, Math.floor(Math.log10(x))), f = x / p; return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * p; }
+function burst(x, y, color, n) {
+  if (reduceMotion) n = Math.min(n, 4);
+  for (let k = 0; k < n; k++) {
+    const a = Math.random() * Math.PI * 2, v = 60 + Math.random() * 160;
+    debris.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, life: 0.5 + Math.random() * 0.6, size: 2 + Math.random() * 3, color });
+  }
+}
+function drawTreasure(now, cx, headY, dtF) {
+  if (!T) return;
+  const x = Math.max(80, Math.min(W - 50, cx + T.ox)), y = headY + T.oy, d = T.def;
+  const jig = T.hit > 0 ? (Math.random() - .5) * 5 : 0;
+  T.hit = Math.max(0, T.hit - dtF);
+  T.x = x; T.y = y;
+  const locked = toolTier(S.up.tools) < d.tier, pulse = 0.5 + 0.5 * Math.sin(now / 260);
+  // cavity
+  ctx.fillStyle = 'rgba(0,0,0,.6)';
+  ctx.beginPath(); ctx.ellipse(x, y, 36, 30, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = d.color; ctx.globalAlpha = 0.25 + 0.35 * pulse; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(x, y, 40 + pulse * 3, 34 + pulse * 3, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.globalAlpha = 1;
+  // the find itself
+  ctx.save(); ctx.translate(x + jig, y);
+  ctx.fillStyle = d.color; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineWidth = 2;
+  switch (d.tier) {
+    case 0: // ammonite spiral
+      ctx.beginPath(); ctx.arc(0, 0, 17, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); for (let a = 0; a < 14; a += 0.2) { const r = 1 + a * 1.15; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.stroke();
+      break;
+    case 1: // geode ring with crystals
+      ctx.fillStyle = '#6b6258'; ctx.beginPath(); ctx.arc(0, 0, 19, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = d.color; ctx.beginPath();
+      for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2, r = k % 2 ? 6 : 14; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+      ctx.closePath(); ctx.fill();
+      break;
+    case 2: // pitted meteorite
+      ctx.beginPath(); for (let k = 0; k < 9; k++) { const a = k / 9 * Math.PI * 2, r = 15 + 5 * Math.sin(k * 2.3 + T.seed); ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = 'rgba(0,0,0,.35)'; [[-5, -4, 4], [6, 3, 3], [-2, 8, 2.5]].forEach(([a, b, r]) => { ctx.beginPath(); ctx.arc(a, b, r, 0, 7); ctx.fill(); });
+      break;
+    case 3: // reliquary chest
+      ctx.fillRect(-17, -8, 34, 20); ctx.strokeRect(-17, -8, 34, 20);
+      ctx.beginPath(); ctx.moveTo(-17, -8); ctx.quadraticCurveTo(0, -24, 17, -8); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#5a3d10'; ctx.fillRect(-3, -3, 6, 7);
+      break;
+    case 4: // glowing artifact
+      ctx.shadowColor = d.color; ctx.shadowBlur = 12 + pulse * 10;
+      ctx.beginPath(); for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2 + now / 900; ctx.lineTo(Math.cos(a) * 17, Math.sin(a) * 17); } ctx.closePath(); ctx.fill();
+      ctx.shadowBlur = 0; ctx.fillStyle = '#0d2b2a'; ctx.beginPath(); ctx.arc(0, 0, 5, 0, 7); ctx.fill();
+      break;
+    default: { // core heart
+      const r = 15 + pulse * 3, g = ctx.createRadialGradient(0, 0, 2, 0, 0, r);
+      g.addColorStop(0, '#fff3c4'); g.addColorStop(.45, d.color); g.addColorStop(1, 'rgba(120,20,0,.9)');
+      ctx.shadowColor = d.color; ctx.shadowBlur = 20; ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.fill(); ctx.shadowBlur = 0;
+    }
+  }
+  // cracks spread as you dig
+  const dmg = 1 - T.hp / T.max, cracks = Math.floor(dmg * 7);
+  ctx.strokeStyle = 'rgba(15,10,5,.75)'; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (let k = 0; k < cracks; k++) {
+    const a = hash(k, T.seed | 0) * Math.PI * 2, r1 = 26 + hash(T.seed | 0, k) * 8;
+    ctx.moveTo(Math.cos(a) * r1, Math.sin(a) * r1 * .85);
+    ctx.lineTo(Math.cos(a + .3) * r1 * .55, Math.sin(a + .3) * r1 * .45); ctx.lineTo(Math.cos(a - .1) * 6, Math.sin(a - .1) * 6);
+  }
+  ctx.stroke(); ctx.restore();
+  // countdown ring
+  const frac = Math.max(0, T.left / T.total);
+  ctx.strokeStyle = T.left < 5 ? '#e8705f' : '#f0b429'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(x, y, 46, -Math.PI / 2, -Math.PI / 2 + frac * Math.PI * 2); ctx.stroke();
+  // label + integrity bar
+  ctx.textAlign = 'center'; ctx.font = '18px "VT323", monospace';
+  const label = d.name.toUpperCase();
+  ctx.fillStyle = 'rgba(0,0,0,.65)'; ctx.fillRect(x - ctx.measureText(label).width / 2 - 5, y - 70, ctx.measureText(label).width + 10, 16);
+  ctx.fillStyle = d.color; ctx.fillText(label, x, y - 58);
+  if (locked) {
+    const msg = 'NEEDS ' + TOOL_NAMES[d.tier].toUpperCase();
+    ctx.fillStyle = 'rgba(0,0,0,.65)'; ctx.fillRect(x - ctx.measureText(msg).width / 2 - 5, y + 52, ctx.measureText(msg).width + 10, 16);
+    ctx.fillStyle = '#e8705f'; ctx.fillText(msg, x, y + 64);
+  } else {
+    ctx.fillStyle = 'rgba(0,0,0,.65)'; ctx.fillRect(x - 32, y + 54, 64, 8);
+    ctx.fillStyle = d.color; ctx.fillRect(x - 31, y + 55, 62 * Math.max(0, T.hp / T.max), 6);
+  }
+  ctx.textAlign = 'left';
+}
+function spawnDebris() {
+  const s = stratum(stratumAt(S.depth));
+  const dir = Math.random() < 0.5 ? -1 : 1;
+  debris.push({
+    x: drillX + dir * 8, y: headYpx + 12,
+    vx: dir * (40 + Math.random() * 120), vy: -(30 + Math.random() * 140),
+    life: 0.5 + Math.random() * 0.6, size: 2 + Math.random() * 3,
+    color: Math.random() < 0.3 ? s.ore : 'rgba(235,230,218,.55)',
+  });
+}
+function texture(s, d0, d1, Y, ppm) {
+  const cs = Math.pow(2, Math.round(Math.log2(viewSpan / 11)));
+  const colW = cs * ppm, cols = Math.ceil(W / colW) + 1;
+  const k0 = Math.floor(d0 / cs) - 1, k1 = Math.ceil(d1 / cs);
+  for (let k = k0; k <= k1; k++) {
+    for (let c = 0; c < cols; c++) {
+      const r1 = hash(k, c), r2 = hash(c + 911, k), r3 = hash(k + 77, c * 3 + 1);
+      const x = (c + r2) * colW, y = Y((k + r1) * cs), rad = colW * (0.07 + 0.2 * r3);
+      if (r3 > 0.92) {
+        ctx.fillStyle = s.ore;
+        ctx.beginPath(); ctx.moveTo(x, y - rad * .8); ctx.lineTo(x + rad * .6, y); ctx.lineTo(x, y + rad * .8); ctx.lineTo(x - rad * .6, y); ctx.closePath(); ctx.fill();
+      } else {
+        ctx.fillStyle = r1 > 0.5 ? 'rgba(0,0,0,.22)' : 'rgba(255,255,255,.07)';
+        ctx.beginPath(); ctx.ellipse(x, y, rad * 1.4, rad * 0.8, r2 * 3, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+  }
+}
+function render(now) {
+  requestAnimationFrame(render);
+  if (!W || !H) return;
+  PL.begin();
+  const dtF = Math.min(0.05, (now - lastFrame) / 1000 || 0); lastFrame = now;
+  const drilling = !S.full && !S.overheat;
+  const sp = drilling && !S.blocked ? speedAt(S.depth) : 0;
+  const target = Math.max(36, sp * 6);
+  viewSpan += (target - viewSpan) * Math.min(1, dtF * 1.5);
+  const diff = S.depth - visDepth;
+  visDepth = Math.abs(diff) > viewSpan * 2 ? S.depth : visDepth + diff * Math.min(1, dtF * 12);
+
+  const ppm = H / viewSpan, headY = Math.round(Math.min(H * 0.58, visDepth * ppm + 30)), cx = Math.round(Math.max(110, W * 0.56));
+  drillX = cx; headYpx = headY;
+  const Y = d => headY + (d - visDepth) * ppm;
+  const dTop = visDepth - headY / ppm, dBot = visDepth + (H - headY) / ppm;
+
+  ctx.save();
+  if (shake > 0) { ctx.translate((Math.random() - .5) * shake, (Math.random() - .5) * shake); shake *= 0.86; if (shake < 0.3) shake = 0; }
+
+  // sky
+  const ySurf = Y(0);
+  ctx.fillStyle = '#0d0e11'; ctx.fillRect(-10, -10, W + 20, H + 20);
+  if (ySurf > -10) {
+    const g = ctx.createLinearGradient(0, ySurf - 260, 0, ySurf);
+    g.addColorStop(0, '#1a2230'); g.addColorStop(1, '#3d4250');
+    ctx.fillStyle = g; ctx.fillRect(-10, -10, W + 20, ySurf + 10);
+  }
+
+  // strata bands
+  let i = stratumAt(Math.max(0, dTop));
+  for (let guard = 0; guard < 80; guard++) {
+    const s = stratum(i), n = stratum(i + 1);
+    const y0 = Math.max(-10, Y(s.top)), y1 = Math.min(H + 10, Y(n.top));
+    if (y0 > H) break;
+    if (y1 > y0) {
+      ctx.fillStyle = s.color; ctx.fillRect(-10, y0, W + 20, y1 - y0);
+      ctx.save(); ctx.beginPath(); ctx.rect(-10, y0, W + 20, y1 - y0); ctx.clip();
+      texture(s, Math.max(s.top, dTop), Math.min(n.top, dBot), Y, ppm);
+      // cap rock: a darker, hatched band at the top of each formation
+      const capBot = Y(s.top + CAP_BAND * (n.top - s.top)), cy0 = Y(s.top);
+      if (i > 0 && !has('e4') && capBot > 0 && cy0 < H) {
+        const cg = ctx.createLinearGradient(0, cy0, 0, capBot);
+        cg.addColorStop(0, 'rgba(0,0,0,.34)'); cg.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = cg; ctx.fillRect(-10, cy0, W + 20, capBot - cy0);
+      }
+      ctx.restore();
+    }
+    if (n.top > dBot) break;
+    i++;
+  }
+  // boundaries + labels
+  ctx.font = '18px "VT323", monospace';
+  ctx.textAlign = 'right';
+  for (let k = stratumAt(Math.max(0, dTop)); stratum(k).top <= dBot; k++) {
+    const s = stratum(k), y = Y(s.top);
+    if (y > -20 && y < H + 20) {
+      if (k > 0) { ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(0, y - 1, W, 2); }
+      if (k > 0 && reachTier(S.up.bit) < barrierTier(k)) {
+        // barrier: hazard-striped contact the current bit cannot cut
+        ctx.save(); ctx.beginPath(); ctx.rect(0, y - 4, W, 8); ctx.clip();
+        ctx.fillStyle = '#e8705f'; ctx.fillRect(0, y - 4, W, 8);
+        ctx.fillStyle = '#1b1407';
+        for (let x = -16; x < W + 16; x += 16) { ctx.beginPath(); ctx.moveTo(x, y + 4); ctx.lineTo(x + 8, y - 4); ctx.lineTo(x + 16, y - 4); ctx.lineTo(x + 8, y + 4); ctx.closePath(); ctx.fill(); }
+        ctx.restore();
+        const msg = `BARRIER · NEEDS ${bitName(neededBit(k)).toUpperCase()} BIT`;
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(60, y - 24, ctx.measureText(msg).width + 10, 16);
+        ctx.fillStyle = '#ff9a8a'; ctx.fillText(msg, 65, y - 12);
+        ctx.textAlign = 'right';
+      }
+      ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillText(`${s.name.toUpperCase()} · ${s.mineral.toUpperCase()}`, W - 11, y + 17);
+      ctx.fillStyle = 'rgba(255,255,255,.78)'; ctx.fillText(`${s.name.toUpperCase()} · ${s.mineral.toUpperCase()}`, W - 12, y + 16);
+    }
+    if (k > 400) break;
+  }
+
+  // surface rig
+  if (false) {
+    ctx.fillStyle = '#3b5a2c'; ctx.fillRect(-10, ySurf - 3, W + 20, 5);
+    ctx.strokeStyle = '#8b909a'; ctx.lineWidth = 2;
+    const top = ySurf - 120;
+    ctx.beginPath();
+    ctx.moveTo(cx - 34, ySurf); ctx.lineTo(cx - 6, top); ctx.moveTo(cx + 34, ySurf); ctx.lineTo(cx + 6, top);
+    for (let k = 1; k < 6; k++) { const yy = ySurf - k * 20, w = 34 - k * 4.7; ctx.moveTo(cx - w, yy); ctx.lineTo(cx + w - 4.7, yy - 20); ctx.moveTo(cx - w, yy); ctx.lineTo(cx + w, yy); }
+    ctx.stroke();
+    ctx.fillStyle = '#5b606a'; ctx.fillRect(cx - 44, ySurf - 8, 88, 8);
+    ctx.fillStyle = '#4a4f58'; ctx.fillRect(cx + 50, ySurf - 26, 46, 26);
+    ctx.fillStyle = (Math.floor(now / 600) % 2) ? '#f0b429' : '#6b5214';
+    ctx.beginPath(); ctx.arc(cx, top - 4, 3.5, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // shaft and drill string
+  const shaftTop = Math.max(-10, ySurf);
+  if (headY > shaftTop) {
+    ctx.fillStyle = 'rgba(6,6,8,.62)'; ctx.fillRect(cx - 14, shaftTop, 28, headY - shaftTop);
+    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(cx - 17, shaftTop, 3, headY - shaftTop); ctx.fillRect(cx + 14, shaftTop, 3, headY - shaftTop);
+  }
+  const pipeTop = ySurf > -10 ? ySurf : -10;
+  const pg = ctx.createLinearGradient(cx - 5, 0, cx + 5, 0);
+  pg.addColorStop(0, '#565b64'); pg.addColorStop(.5, '#c3c8cf'); pg.addColorStop(1, '#565b64');
+  ctx.fillStyle = pg; ctx.fillRect(cx - 5, pipeTop, 10, headY - 26 - pipeTop);
+  ctx.fillStyle = '#7d828b';
+  for (let y = headY - 26 - 64; y > pipeTop; y -= 64) ctx.fillRect(cx - 7, y, 14, 5);
+
+  // drill head
+  if (drilling) spin += dtF * 14;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(cx - 11, headY - 26, 22, 26); ctx.clip();
+  ctx.fillStyle = '#f0b429'; ctx.fillRect(cx - 11, headY - 26, 22, 26);
+  ctx.strokeStyle = '#1b1407'; ctx.lineWidth = 4;
+  const off = (spin * 6) % 12;
+  ctx.beginPath();
+  for (let x = -40; x < 40; x += 12) { ctx.moveTo(cx + x + off, headY); ctx.lineTo(cx + x + off + 26, headY - 26); }
+  ctx.stroke(); ctx.restore();
+  ctx.fillStyle = '#c9ced5';
+  ctx.beginPath(); ctx.moveTo(cx - 12, headY); ctx.lineTo(cx + 12, headY); ctx.lineTo(cx, headY + 22); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#6f747d'; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (let k = 0; k < 3; k++) { const p = ((spin * 0.9 + k / 3) % 1) * 24 - 12; ctx.moveTo(cx + p, headY); ctx.lineTo(cx, headY + 22); }
+  ctx.stroke();
+  // heat glow on the bit
+  if (S.heat > 0.05) {
+    const h = S.heat;
+    ctx.fillStyle = `rgba(255,${Math.round(150 - 110 * h)},30,${0.15 + 0.6 * h})`;
+    ctx.beginPath(); ctx.moveTo(cx - 12, headY - 8); ctx.lineTo(cx + 12, headY - 8); ctx.lineTo(cx + 12, headY); ctx.lineTo(cx, headY + 22); ctx.lineTo(cx - 12, headY); ctx.closePath(); ctx.fill();
+    if (h > 0.6) { ctx.shadowColor = '#ff5a1f'; ctx.shadowBlur = 18 * h; ctx.fill(); ctx.shadowBlur = 0; }
+  }
+  if (S.overheat && Math.random() < 0.5)
+    debris.push({ x: cx - 10 + Math.random() * 20, y: headY - 10, vx: (Math.random() - .5) * 30, vy: -30 - Math.random() * 40, life: 1 + Math.random(), size: 4 + Math.random() * 4, color: 'rgba(220,224,230,.35)', steam: true });
+
+  // debris
+  if (drilling && !reduceMotion) { const rate = Math.min(4, 0.6 + sp * 0.5); let n = Math.floor(rate); if (Math.random() < rate - n) n++; for (let k = 0; k < n; k++) spawnDebris(); }
+  for (let k = debris.length - 1; k >= 0; k--) {
+    const p = debris[k]; p.life -= dtF; if (p.life <= 0) { debris.splice(k, 1); continue; }
+    p.vy += (p.steam ? -15 : 340) * dtF; p.x += p.vx * dtF; p.y += p.vy * dtF;
+    ctx.fillStyle = p.color; ctx.globalAlpha = Math.min(1, p.life * 2); ctx.fillRect(p.x, p.y, p.size, p.size);
+  }
+  ctx.globalAlpha = 1;
+  drawTreasure(now, cx, headY, dtF);
+  ctx.restore();
+
+  // depth ruler
+  ctx.fillStyle = 'rgba(10,11,14,.68)'; ctx.fillRect(0, 0, 52, H);
+  const step = nice(viewSpan / 7), minor = step / 5;
+  ctx.strokeStyle = 'rgba(235,230,218,.5)'; ctx.lineWidth = 1; ctx.fillStyle = 'rgba(235,230,218,.8)';
+  ctx.textAlign = 'left'; ctx.font = '16px "VT323", monospace';
+  ctx.beginPath();
+  for (let m = Math.max(0, Math.floor(dTop / minor)); m * minor <= dBot; m++) {
+    const y = Math.round(Y(m * minor)) + .5, major = m % 5 === 0;
+    ctx.moveTo(major ? 38 : 46, y); ctx.lineTo(52, y);
+    if (major) ctx.fillText(fmtRuler(m * minor), 4, y - 3);
+  }
+  ctx.stroke();
+  ctx.fillStyle = '#f0b429';
+  ctx.beginPath(); ctx.moveTo(52, headY); ctx.lineTo(60, headY - 5); ctx.lineTo(60, headY + 5); ctx.closePath(); ctx.fill();
+  ctx.fillRect(52, headY - .5, cx - 64, 1);
+
+  // floaters
+  ctx.textAlign = 'left';
+  for (let k = floaters.length - 1; k >= 0; k--) {
+    const f = floaters[k]; f.life -= dtF; if (f.life <= 0) { floaters.splice(k, 1); continue; }
+    f.y -= dtF * (f.big ? 26 : 42);
+    ctx.font = f.big ? '22px "VT323", monospace' : '19px "VT323", monospace';
+    ctx.globalAlpha = Math.min(1, f.life * 2.2);
+    ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillText(f.text, f.x + 1, f.y + 1);
+    ctx.fillStyle = f.color; ctx.fillText(f.text, f.x, f.y);
+  }
+  ctx.globalAlpha = 1;
+  PL.end();
+}
+
+/* ---------- UI ---------- */
+// tabs
+let activeTab = 'rig';
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  activeTab = t.dataset.tab;
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', String(b === t)));
+  ['rig', 'ore', 'skills', 'prestige'].forEach(id => $('#p-' + id).hidden = id !== activeTab);
+  try { localStorage.setItem(SAVE_KEY + '-tab', activeTab); } catch (e) {}
+  uiTick(true);
+}));
+document.querySelectorAll('[data-buy]').forEach(b => b.addEventListener('click', () => {
+  buyMode = b.dataset.buy === 'max' ? 'max' : +b.dataset.buy;
+  document.querySelectorAll('[data-buy]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  uiTick(true);
+}));
+
+// rig list
+const upgEls = {};
+$('#upgList').innerHTML = UPGS.map(u => `
+  <div class="upg" id="u-${u.id}">
+    <div class="name">${u.name} <span class="lv"></span></div>
+    <div class="eff"></div>
+    <button class="btn primary" type="button" id="ub-${u.id}"></button>
+  </div>`).join('');
+UPGS.forEach(u => {
+  const el = $('#u-' + u.id);
+  upgEls[u.id] = { row: el, lv: el.querySelector('.lv'), eff: el.querySelector('.eff'), btn: el.querySelector('button') };
+  upgEls[u.id].btn.addEventListener('click', () => buy(u));
+});
+
+// skill tree
+const ROW_H = 92;
+let selSkill = 'root';
+(function buildTree() {
+  const tree = $('#tree'), rows = Math.max(...SKILLS.map(s => s.row)) + 1;
+  tree.style.height = (rows * ROW_H) + 'px';
+  const svg = $('#treeSvg');
+  svg.setAttribute('viewBox', `0 0 400 ${rows * ROW_H}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+  const px = c => (c + 0.5) * 100, py = r => r * ROW_H + 30;
+  let lines = '';
+  SKILLS.forEach(s => s.req.forEach(r => {
+    const p = SK[r];
+    lines += `<line data-a="${r}" data-b="${s.id}" x1="${px(p.col)}" y1="${py(p.row)}" x2="${px(s.col)}" y2="${py(s.row)}" vector-effect="non-scaling-stroke"/>`;
+  }));
+  svg.innerHTML = lines;
+  SKILLS.forEach(s => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'node'; b.id = 'sk-' + s.id;
+    b.style.left = ((s.col + 0.5) / 4 * 100) + '%';
+    b.style.top = (s.row * ROW_H + 30) + 'px';
+    b.innerHTML = `<span class="gem"><span>${s.ab}</span></span><span class="nm">${s.name}</span>`;
+    b.addEventListener('click', () => { selSkill = s.id; uiTick(true); });
+    tree.appendChild(b);
+  });
+})();
+function buySkill(s) {
+  const c = skillCost(s);
+  if (!skillOpen(s) || S.shards < c) return;
+  S.shards -= c;
+  if (s.repeat) { S.resonance++; S.skills[s.id] = true; } else S.skills[s.id] = true;
+  if (s.id === 'c2' && S.up.hopper < 3) { S.up.hopper = 3; S.up.conveyor = Math.max(3, S.up.conveyor); }
+  logEvt(`Learned ${s.name}${s.repeat ? ` (rank ${S.resonance})` : ''}.`, 'shard');
+  uiTick(true); save();
+}
+function renderDetail() {
+  const s = SK[selSkill], c = skillCost(s), own = has(s.id) && !s.repeat;
+  const open = skillOpen(s), can = open && S.shards >= c;
+  const reqTxt = s.req.length ? 'Requires ' + s.req.map(r => SK[r].name).join(', ') + '.' : '';
+  $('#detail').innerHTML = `
+    <div class="row"><span class="t">${s.name}${s.repeat && S.resonance ? ` · rank ${S.resonance}` : ''}</span><span class="val" style="color:var(--shard)">${own ? 'Learned' : c + ' shard' + (c > 1 ? 's' : '')}</span></div>
+    <p>${s.desc}</p>
+    ${!open && !own ? `<p>${reqTxt}</p>` : ''}
+    ${own ? '' : `<div class="row" style="justify-content:flex-start"><button class="btn shard" type="button" id="learnBtn" ${can ? '' : 'disabled'}>${open ? (can ? 'Learn skill' : 'Not enough shards') : 'Locked'}</button></div>`}`;
+  const lb = $('#learnBtn'); if (lb) lb.addEventListener('click', () => buySkill(s));
+}
+
+// sell, prestige, wipe, toast
+$('#sellBtn').addEventListener('click', () => { const e = sellFraction(1); if (e > 0) floaters.push({ text: `+${fmt(e)} cr`, x: drillX + 20, y: headYpx - 30, life: 1.2, color: '#f0b429', big: true }); S.full = false; uiTick(true); });
+let prestigeArmed = 0, wipeArmed = 0;
+$('#prestigeBtn').addEventListener('click', () => {
+  if (shardsFor(S.maxDepth) < 1) return;
+  if (Date.now() - prestigeArmed < 4000) { prestigeArmed = 0; prestige(); return; }
+  prestigeArmed = Date.now(); uiTick(true);
+});
+$('#wipeBtn').addEventListener('click', () => {
+  if (Date.now() - wipeArmed < 4000) {
+    wipeArmed = 0; S = DEFAULT(); migrateClaims(); visDepth = 0;
+    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+    renderLog(); renderBoons(); showDraft(); yardSig = ''; uiTick(true); return;
+  }
+  wipeArmed = Date.now(); uiTick(true);
+});
+$('#draftSell').addEventListener('click', sellDraft);
+$('#blastBtn').addEventListener('click', detonate);
+document.addEventListener('keydown', e => {
+  if (S.drafts.length && !$('#draft').hidden) {
+    if (/^[1-4]$/.test(e.key) && +e.key <= S.drafts[0].options.length) { e.preventDefault(); pickCard(+e.key - 1); return; }
+    if (e.key === 's' || e.key === 'S') { e.preventDefault(); sellDraft(); return; }
+  }
+  if ((e.key === 'b' || e.key === 'B') && S.blocked && S.charges) { e.preventDefault(); detonate(); }
+});
+$('#toastOk').addEventListener('click', () => { $('#toast').hidden = true; });
+
+// input on canvas
+cv.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  if (T && Math.hypot(x - T.x, y - T.y) < 52) strike(); else hammer();
+});
+cv.addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat) hammer(); }
+  else if (e.key === 'e' || e.key === 'E') { e.preventDefault(); if (!e.repeat) strike(); }
+});
+
+// periodic DOM refresh
+let lastLife = 0, lastLifeT = performance.now(), income = 0, uiCount = 0;
+function uiTick(force) {
+  uiCount++;
+  const now = performance.now();
+  if (now - lastLifeT >= 1000) {
+    const inst = (S.lifetime - lastLife) / ((now - lastLifeT) / 1000);
+    income = income ? income * 0.7 + inst * 0.3 : inst;
+    lastLife = S.lifetime; lastLifeT = now;
+  }
+  const si = stratumAt(S.depth), s = stratum(si);
+  $('#rCredits').textContent = fmt(S.credits) + ' cr';
+  $('#rIncome').textContent = fmt(Math.max(0, income)) + ' cr/s';
+  $('#rBest').textContent = fmtDepth(S.best);
+  $('#rShards').textContent = fmt(S.shards);
+  const pl = Math.max(0, Math.ceil(S.permit));
+  $('#rPermit').textContent = `${Math.floor(pl / 60)}:${String(pl % 60).padStart(2, '0')}`;
+  $('#rPermit').classList.toggle('low', pl <= 120 && !S.launched);
+  if (S.launched) $('#rPermit').textContent = 'Endless';
+  const shipNow = shippable();
+  $('#shipBtn').disabled = shipNow < 0.5;
+  $('#shipBtn').textContent = shipLabel(shipNow);
+  $('#dotYard').hidden = !yardReady();
+  if (activeScreen === 'yard') yardUi(force);
+  $('#claimNo').textContent = `Claim #${S.prestiges + 1} · ${curClaim().name}`;
+  $('#gDepth').textContent = fmtDepth(S.depth);
+  $('#gSpeed').textContent = S.overheat ? '0 m/s · overheated' : S.full ? '0 m/s · hopper full'
+    : S.blocked ? '0 m/s · stalled at contact' : fmtRate(speedAt(S.depth)) + ' m/s' + (formIndex(S.depth) >= 1 && capRock(formIndex(S.depth) % 1) > 1.01 ? ' · cap rock' : '');
+  $('#gHeat').textContent = Math.round(toCelsius(S.heat)) + ' °C';
+  $('#gHeatBar').style.width = (S.heat * 100) + '%';
+  $('#heatBar').classList.toggle('warm', S.heat > 0.5 && S.heat <= 0.8 && !S.overheat);
+  $('#heatBar').classList.toggle('hot', S.heat > 0.8 || S.overheat);
+  $('#heatWarn').hidden = !S.overheat;
+  $('#blockWarn').hidden = !S.blocked;
+  $('#blastBtn').hidden = !(S.blocked && S.charges > 0 && !S.blast);
+  if (S.charges) $('#blastBtn').textContent = `Detonate charge (${S.charges}) · B`;
+  if (S.blocked) $('#blockWarn').textContent = `${stratum(S.blocked).name} barrier · needs ${bitName(neededBit(S.blocked))} bit`;
+  $('#gStrat').textContent = veinMult(si) > 0 ? `${s.name} · ${s.mineral}${veinMult(si) > 1.05 ? ' ×' + +veinMult(si).toFixed(1) : ''}` : `${s.name} · barren`;
+  const tot = hopperTotal(), c = cap();
+  $('#gHop').textContent = `${fmt(tot)} / ${fmt(c)}`;
+  $('#gHopBar').style.width = Math.min(100, tot / c * 100) + '%';
+  $('#hopBar').classList.toggle('full', tot >= c - 1e-9);
+  $('#fullWarn').hidden = !S.full;
+  const worth = hopperWorth();
+  $('#sellVal').textContent = fmt(worth);
+  $('#sellBonus').textContent = S.up.hopper ? ` · +${fmt((bulkPremium() / boonMult('hand') - 1) * 100)}% of +${fmt((maxBulk() - 1) * 100)}% bulk` : '';
+  $('#sellBtn').disabled = worth <= 0;
+
+  const anySkill = SKILLS.some(k => skillOpen(k) && S.shards >= skillCost(k));
+  $('#dotSkills').hidden = !anySkill;
+  $('#dotPrestige').hidden = shardsFor(S.maxDepth) < 1;
+
+  if (activeTab === 'rig') {
+    UPGS.forEach(u => {
+      const L = S.up[u.id], e = upgEls[u.id], p = plan(u), maxed = u.max && L >= u.max;
+      e.lv.textContent = 'Lv ' + L + (u.max ? ' / ' + u.max : '');
+      e.eff.innerHTML = u.eff(L) + (maxed ? '' : ` · next: ${u.next()}`);
+      const can = !maxed && p.n > 0 && p.total <= S.credits;
+      e.btn.disabled = !can;
+      e.btn.textContent = maxed ? 'Maxed' : `${p.n > 1 ? '×' + p.n + ' · ' : ''}${fmt(p.total)} cr`;
+      e.row.classList.toggle('can', can);
+      e.row.classList.toggle('need', u.id === 'bit' && S.blocked > 0);
+    });
+  } else if (activeTab === 'ore' && (force || uiCount % 3 === 0)) {
+    const keys = Object.keys(S.ore).map(Number).filter(k => S.ore[k] >= 0.05).sort((a, b) => b - a);
+    $('#oreBody').innerHTML = keys.map(k => {
+      const st = stratum(k);
+      return `<tr><td><span class="sw" style="background:${st.ore};box-shadow:0 0 0 1px rgba(255,255,255,.25)"></span>${st.mineral}</td><td class="n">${fmt(S.ore[k])}</td><td class="n">${fmt(price(k))}</td><td class="n">${fmt(S.ore[k] * price(k))}</td></tr>`;
+    }).join('') || '<tr class="unknown"><td colspan="4">Hopper empty. Ore arrives as the bit cuts rock.</td></tr>';
+    let rows = '';
+    for (let k = 0; k <= S.codex + 1; k++) {
+      const st = stratum(k);
+      const vm = veinMult(k), vt = vm <= 0 ? ' <span class="vtag barren">barren here</span>' : vm > 1.05 ? ` <span class="vtag rich">×${+vm.toFixed(1)} here</span>` : '';
+      rows += k <= S.codex
+        ? `<tr><td>${st.name}</td><td><span class="sw" style="background:${st.ore};box-shadow:0 0 0 1px rgba(255,255,255,.25)"></span>${st.mineral}${vt}</td><td class="n">${fmtDepth(st.top)}</td><td>${bitName(neededBit(k))}</td><td class="n">${fmt(st.value)}</td></tr>`
+        : `<tr class="unknown"><td>Unknown formation</td><td>Unidentified</td><td class="n">${fmtDepth(st.top)}</td><td>${bitName(neededBit(k))}</td><td class="n">?</td></tr>`;
+    }
+    $('#codexBody').innerHTML = rows;
+  } else if (activeTab === 'skills') {
+    $('#skShards').textContent = `${fmt(S.shards)} shard${S.shards === 1 ? '' : 's'}`;
+    SKILLS.forEach(k => {
+      const b = $('#sk-' + k.id), own = has(k.id), open = skillOpen(k);
+      b.className = 'node' + (own && !k.repeat ? ' own' : '') + (k.repeat && S.resonance ? ' own' : '') + (open ? ' avail' : '') +
+        (open && S.shards >= skillCost(k) ? ' afford' : '') + (!own && !open ? ' locked' : '') + (k.id === selSkill ? ' sel' : '');
+      b.querySelector('.gem span').textContent = k.repeat && S.resonance ? S.resonance : k.ab;
+      b.setAttribute('aria-label', `${k.name}, ${own && !k.repeat ? 'learned' : skillCost(k) + ' shards'}`);
+    });
+    document.querySelectorAll('#treeSvg line').forEach(l => l.classList.toggle('on', has(l.dataset.b)));
+    if (force || uiCount % 3 === 0) renderDetail();
+  } else if (activeTab === 'prestige') {
+    const g = shardsFor(S.maxDepth);
+    $('#pDepth').textContent = fmtDepth(S.maxDepth);
+    $('#pGain').textContent = fmt(g);
+    $('#pNext').textContent = fmtDepth(Math.max(300, depthForShards(g + 1)));
+    $('#pBonus').textContent = '×' + shardBonus().toFixed(2);
+    $('#sClaims').textContent = S.prestiges;
+    $('#sLife').textContent = fmt(S.lifetime) + ' cr';
+    $('#sFinds').textContent = S.finds;
+    $('#sBest').textContent = fmt(S.bestFind) + ' cr';
+    const pb = $('#prestigeBtn'), armed = Date.now() - prestigeArmed < 4000;
+    pb.disabled = g < 1;
+    pb.textContent = g < 1 ? 'Reach 300 m to seal a shaft' : armed ? `Confirm: reset the rig for ${fmt(g)} shards` : `Seal shaft for ${fmt(g)} core shard${g > 1 ? 's' : ''}`;
+    pb.className = 'btn ' + (armed ? 'primary' : 'shard');
+    $('#wipeBtn').textContent = Date.now() - wipeArmed < 4000 ? 'Confirm: erase everything' : 'Wipe save';
+  }
+}
+
+/* ---------- claim map ---------- */
+document.body.insertAdjacentHTML('beforeend', `
+<div class="cmap" id="cmap" hidden role="dialog" aria-modal="true" aria-labelledby="cmapTitle">
+  <div class="cmap-in">
+    <div class="cmap-h"><div><span class="lbl" id="cmapKick">Survey office</span><h2 id="cmapTitle">Claim map of Kessra</h2></div>
+      <span class="val cmap-shards" id="cmapShards"></span><button class="btn" id="cmapClose" type="button">Close</button></div>
+    <p class="cmap-note" id="cmapNote"></p>
+    <div class="cmap-view"><canvas id="cmapCv" aria-hidden="true"></canvas><div class="cmap-pins" id="cmapPins"></div></div>
+    <div class="cmap-list" id="cmapList"></div>
+  </div>
+</div>`);
+$('#prestigeBtn').insertAdjacentHTML('afterend', '<button class="btn" id="mapBtn" type="button">Claim map</button>');
+let cmapMode = 'browse', cmapSel = null;
+const modText = c => {
+  const m = c.mods, out = [];
+  if (m.hard < 1) out.push(`Soft rock, ${Math.round((1 - m.hard) * 100)}% easier to cut`);
+  if (m.hard > 1) out.push(`Hard rock, ${Math.round((m.hard - 1) * 100)}% tougher`);
+  if (m.value) out.push(`Ore prices ×${m.value}`);
+  if (m.permit) out.push(`Permits ${Math.abs(m.permit / 60)} min ${m.permit < 0 ? 'shorter' : 'longer'}`);
+  if (m.ping) out.push(`Treasure pings ×${m.ping}`);
+  if (m.heat) out.push(`Strikes run ${Math.round((m.heat - 1) * 100)}% hotter`);
+  if (m.all) out.push(`All ore ×${m.all}`);
+  return out;
+};
+function claimVeinsHtml(c) {
+  const last = Math.min(c.floor, Math.max(S.codex + 1, 12));
+  let sw = '';
+  for (let k = 0; k <= last; k++) {
+    const st = stratum(k), known = k <= S.codex, rich = c.rich[k];
+    sw += `<span class="vein${rich ? ' rich' : ''}" title="${known ? st.mineral : 'Unknown mineral'}${rich ? ' ×' + rich : ''}" style="--oc:${known ? st.ore : 'var(--line)'}">${rich ? '×' + rich : ''}</span>`;
+  }
+  const floorTxt = c.floor >= 1e8 ? 'Ore all the way down.' : `Ore down to ${c.floor <= S.codex ? stratum(c.floor).mineral : 'an unknown mineral'} (${fmtDepth(stratum(c.floor + 1).top)}), barren below.`;
+  const richTxt = Object.keys(c.rich).length ? ' Rich: ' + Object.entries(c.rich).map(([k, v]) => `${+k <= S.codex ? stratum(+k).mineral : 'unknown'} ×${v}`).join(', ') + '.' : '';
+  return `<div class="veins">${sw}</div><p class="cd">${floorTxt}${richTxt}</p>`;
+}
+function renderClaimMap() {
+  $('#cmapShards').textContent = `${fmt(S.credits)} cr to spend`;
+  $('#cmapPins').innerHTML = CLAIMS.map((c, i) => {
+    const own = !!S.claimsOwned[c.id], cur = c.id === S.claim;
+    return `<button type="button" class="pin${own ? ' own' : ''}${cur ? ' cur' : ''}${cmapSel === c.id ? ' sel' : ''}" data-pin="${c.id}" style="left:${c.x * 100}%;top:${c.y * 100}%" aria-label="${c.name}${own ? ', owned' : ', locked'}">${i + 1}</button>`;
+  }).join('');
+  $('#cmapList').innerHTML = CLAIMS.map((c, i) => {
+    const own = !!S.claimsOwned[c.id], cur = c.id === S.claim, can = !own && S.credits >= c.cost;
+    const pill = cur && cmapMode === 'browse' ? 'Drilling now' : own ? 'Owned' : `Survey · ${fmt(c.cost)} cr`;
+    const btn = own
+      ? (cmapMode !== 'browse' ? `<button class="btn primary" type="button" data-stake="${c.id}">Stake claim here</button>` : '')
+      : `<button class="btn shard" type="button" data-buy-claim="${c.id}" ${can ? '' : 'disabled'}>${can ? `Buy survey · ${fmt(c.cost)} cr` : `Needs ${fmt(c.cost)} cr`}</button>`;
+    return `<article class="ccard${own ? ' own' : ' locked'}${cur ? ' cur' : ''}${cmapSel === c.id ? ' sel' : ''}" id="cc-${c.id}">
+      <div class="ccard-h"><span class="t">${i + 1} · ${c.name}</span><span class="pill${own ? ' built' : ''}">${pill}</span></div>
+      <p class="cd">${c.blurb}</p>${claimVeinsHtml(c)}
+      ${modText(c).length ? `<div class="mods">${modText(c).map(t => `<span class="chip">${t}</span>`).join('')}</div>` : ''}
+      ${btn ? `<div class="row">${btn}</div>` : ''}</article>`;
+  }).join('');
+  document.querySelectorAll('[data-pin]').forEach(b => b.addEventListener('click', () => { cmapSel = b.dataset.pin; renderClaimMap(); $('#cc-' + cmapSel).scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' }); }));
+  document.querySelectorAll('[data-stake]').forEach(b => b.addEventListener('click', () => stakeClaim(b.dataset.stake)));
+  document.querySelectorAll('[data-buy-claim]').forEach(b => b.addEventListener('click', () => buyClaim(b.dataset.buyClaim)));
+  drawClaimMap();
+}
+function drawClaimMap() {
+  const cvm = $('#cmapCv'), r = cvm.getBoundingClientRect(); if (!r.width) return;
+  const s2 = r.width >= 520 ? 4 : 3, w = Math.ceil(r.width / s2), h = Math.ceil(r.height / s2);
+  if (cvm.width !== w || cvm.height !== h) { cvm.width = w; cvm.height = h; }
+  const c = cvm.getContext('2d'), img = c.createImageData(w, h), d = img.data;
+  const pal = [[43, 30, 26], [90, 58, 43], [138, 90, 60], [196, 154, 108], [86, 108, 134], [148, 176, 194], [93, 39, 93]];
+  const nz = (x, y) => { const i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j, a = hash(i, j * 7 + 3), b = hash(i + 1, j * 7 + 3), cc = hash(i, (j + 1) * 7 + 3), dd = hash(i + 1, (j + 1) * 7 + 3), sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy); return a + (b - a) * sx + (cc - a) * sy + (a - b - cc + dd) * sx * sy; };
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const e = nz(x / 14, y / 14) * 0.65 + nz(x / 5, y / 5) * 0.35, dith = ((x + y) & 1) * 0.04;
+    let k = e + dith < 0.3 ? 0 : e + dith < 0.45 ? 1 : e + dith < 0.6 ? 2 : e + dith < 0.7 ? 3 : e + dith < 0.8 ? 4 : 5;
+    const i = (y * w + x) * 4, p = pal[k]; d[i] = p[0]; d[i + 1] = p[1]; d[i + 2] = p[2]; d[i + 3] = 255;
+  }
+  c.putImageData(img, 0, 0);
+  // the rift and the caldera, then a dotted survey route between owned sites
+  c.fillStyle = '#b13e53'; for (let k = 0; k < 40; k++) c.fillRect(Math.round(w * (0.74 + k * 0.004)), Math.round(h * (0.12 + k * 0.012 + Math.sin(k) * 0.01)), 1, 1);
+  c.fillStyle = '#5d275d'; for (let a = 0; a < 6.28; a += 0.15) c.fillRect(Math.round(w * 0.9 + Math.cos(a) * 7), Math.round(h * 0.72 + Math.sin(a) * 5), 1, 1);
+  c.fillStyle = '#1a1c2c'; for (let a = 0; a < 6.28; a += 0.2) c.fillRect(Math.round(w * 0.5 + Math.cos(a) * 5), Math.round(h * 0.12 + Math.sin(a) * 3), 1, 1);
+  c.fillStyle = '#ffcd75';
+  const owned = CLAIMS.filter(cl => S.claimsOwned[cl.id]);
+  for (let i = 1; i < owned.length; i++) {
+    const a = owned[i - 1], b = owned[i], n = Math.ceil(Math.hypot((b.x - a.x) * w, (b.y - a.y) * h) / 3);
+    for (let k = 1; k < n; k++) c.fillRect(Math.round((a.x + (b.x - a.x) * k / n) * w), Math.round((a.y + (b.y - a.y) * k / n) * h), 1, 1);
+  }
+}
+function openClaimMap(mode, note) {
+  cmapMode = mode; cmapSel = S.claim;
+  $('#cmapClose').hidden = mode !== 'browse';
+  $('#cmapKick').textContent = mode === 'browse' ? 'Survey office' : 'Between claims';
+  $('#cmapTitle').textContent = mode === 'browse' ? 'Claim map of Kessra' : 'Stake your next claim';
+  $('#cmapNote').textContent = mode === 'browse'
+    ? 'Buy surveys with credits; a survey is yours for good. A new claim can only be staked on a site you own, after you seal the current shaft.'
+    : `${note ? note + ' ' : ''}Credits you still hold can buy a survey now, before they are lost. Then pick a site you own to start a fresh claim.`;
+  $('#cmap').hidden = false;
+  renderClaimMap();
+  requestAnimationFrame(drawClaimMap);
+}
+function buyClaim(id) {
+  const c = CLAIM[id]; if (!c || S.claimsOwned[id] || S.credits < c.cost) return;
+  S.credits -= c.cost; S.claimsOwned[id] = 1; cmapSel = id;
+  logEvt(`Bought the survey for ${c.name}.`, 'shard');
+  renderClaimMap(); uiTick(true); save();
+}
+function stakeClaim(id) {
+  if (!S.claimsOwned[id]) return;
+  S.claim = id; S.choosing = false;
+  newRun();
+  $('#cmap').hidden = true;
+  logEvt(`Staked claim #${S.prestiges + 1} at ${CLAIM[id].name}.`, 'strata');
+  uiTick(true); save();
+}
+$('#cmapClose').addEventListener('click', () => { if (!S.choosing) $('#cmap').hidden = true; });
+$('#mapBtn').addEventListener('click', () => openClaimMap(S.choosing ? 'seal' : 'browse'));
+new ResizeObserver(() => { if (!$('#cmap').hidden) drawClaimMap(); }).observe($('#cmapCv'));
+
+/* ---------- shipyard: build Meridian to escape the planet ---------- */
+// materials are keyed by formation index: 0 Coal, 1 Copper, 2 Iron, 3 Silver, 4 Gold, 5 Cobalt, 6 Lithium, 7 Diamond, 8 Platinum, 9 Iridium, 10 Rhodium, 11 Painite, 12 Taaffeite
+// tuned with an active-play bot and claim sites: the warp core needs the Mantle Rift survey and two or three claims there
+const STAGES = [
+  { name: 'Launch Gantry',   mats: { 0: 200, 1: 300, 2: 200 }, reward: 'Every new claim starts with a Tungsten bit (Drill Bit level 6).' },
+  { name: 'Hull Frame',      mats: { 2: 800, 3: 600 }, reward: 'Claim permits last 3 minutes longer.' },
+  { name: 'Flight Computer', mats: { 1: 800, 3: 600, 4: 900 }, reward: 'Treasure drafts offer 4 cards instead of 3.' },
+  { name: 'Fusion Cells',    mats: { 5: 2500, 6: 2000 }, reward: 'Ore per meter ×1.5.' },
+  { name: 'Lens Array and Heat Shield', mats: { 7: 3000, 8: 3000, 9: 2000 }, reward: 'Drill speed ×2.' },
+  { name: 'Warp Core',       mats: { 10: 25000, 11: 30000, 12: 30000 }, reward: 'Meridian can launch.' },
+];
+const shipSpeed = () => (S.ship >= 5 ? 2 : 1) * Math.pow(1.25, S.refits);
+const draftSize = () => S.ship >= 3 ? 4 : 3;
+// endless refits draw on the three deepest minerals you have found, growing ×1.6 each time
+function refitMats(n) { const c = Math.max(2, S.codex), k = Math.pow(1.6, n); return { [c]: Math.round(60 * k), [c - 1]: Math.round(120 * k), [c - 2]: Math.round(200 * k) }; }
+function currentMats() { return S.launched ? refitMats(S.refits) : S.ship < STAGES.length ? STAGES[S.ship].mats : null; }
+function matsReady(m) { for (const k in m) if ((S.stock[k] || 0) < m[k] - 1e-6) return false; return true; }
+function yardReady() { const m = currentMats(); return m ? matsReady(m) : !S.launched; }
+function yardNeeds() {
+  const need = {};
+  const add = m => { for (const k in m) need[k] = (need[k] || 0) + m[k]; };
+  if (S.launched) add(refitMats(S.refits)); else for (let i = S.ship; i < STAGES.length; i++) add(STAGES[i].mats);
+  for (const k in need) need[k] = Math.max(0, need[k] - (S.stock[k] || 0));
+  return need;
+}
+function shippable() { const need = yardNeeds(); let t = 0; for (const k in need) t += Math.min(need[k], S.ore[k] || 0); return t; }
+function shipOre() {
+  const need = yardNeeds(); let moved = 0;
+  for (const k in need) {
+    const a = Math.min(need[k], S.ore[k] || 0); if (a <= 0) continue;
+    S.ore[k] -= a; if (S.ore[k] < 1e-6) delete S.ore[k];
+    S.stock[k] = (S.stock[k] || 0) + a; moved += a;
+  }
+  if (moved > 0) {
+    S.full = false;
+    floaters.push({ text: `${fmt(moved)} loads to the yard`, x: drillX + 20, y: headYpx - 30, life: 1.3, color: '#8fd0f5', big: true });
+    logEvt(`Shipped ${fmt(moved)} loads of ore to the Meridian shipyard.`, 'shard');
+  }
+  uiTick(true);
+}
+function buildNext() {
+  const m = currentMats(); if (!m || !matsReady(m)) return;
+  for (const k in m) S.stock[k] -= m[k];
+  if (S.launched) {
+    S.refits++;
+    logEvt(`Refit Mk ${roman(S.refits + 1)} complete. Drill speed and ore prices ×1.25, for good.`, 'shard');
+  } else {
+    const st = STAGES[S.ship]; S.ship++;
+    if (S.ship === 1) S.up.bit = Math.max(S.up.bit, 6);
+    if (S.ship === 2) S.permit += 180;
+    logEvt(`${st.name} built. ${st.reward}`, 'shard');
+  }
+  yardBurst = performance.now(); yardSig = '';
+  uiTick(true); save();
+}
+let launchT = 0, yardBurst = 0, yardSig = '', activeScreen = 'site';
+function launch() { if (S.launched || S.ship < STAGES.length || launchT) return; launchT = performance.now(); $('#launchBtn').disabled = true; $('#launchBtn').textContent = 'Ignition'; }
+function finishLaunch() {
+  launchT = 0; S.launched = true; S.launchedAt = Date.now();
+  logEvt('Meridian cleared the atmosphere. Endless mode: claims no longer expire.', 'shard');
+  yardSig = ''; showEnding(); uiTick(true); save();
+}
+function showEnding() {
+  const secs = Math.max(60, ((S.launchedAt || Date.now()) - (S.started || Date.now())) / 1000);
+  $('#endStats').innerHTML = [['Time to launch', fmtDur(secs)], ['Claims sealed', S.prestiges], ['Record depth', fmtDepth(S.best)], ['Treasures dug out', S.finds]]
+    .map(([a, b]) => `<div class="stat"><span class="lbl">${a}</span><span class="v">${b}</span></div>`).join('');
+  $('#ending').hidden = false;
+  $('#endOk').focus();
+}
+function setScreen(sc) {
+  activeScreen = sc;
+  document.querySelectorAll('[data-screen]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.screen === sc)));
+  $('#siteScreen').hidden = sc !== 'site';
+  $('#yardScreen').hidden = sc !== 'yard';
+  try { localStorage.setItem(SAVE_KEY + '-screen', sc); } catch (e) {}
+  yardSig = ''; uiTick(true);
+}
+document.querySelectorAll('[data-screen]').forEach(b => b.addEventListener('click', () => setScreen(b.dataset.screen)));
+$('#shipBtn').addEventListener('click', shipOre);
+$('#shipBtn2').addEventListener('click', shipOre);
+$('#launchBtn').addEventListener('click', launch);
+$('#endOk').addEventListener('click', () => { $('#ending').hidden = true; });
+
+// a mineral counts as known once you reach its formation or hold any of it
+// (rare pockets carry the next formation's mineral, so it can arrive early)
+// the count is the ore in your hopper right now that a planned stage can still use
+const shipLabel = n => n >= 0.5 ? `Ship ${fmt(n)} to yard` : 'Yard needs none';
+function matRow(k, have, need) {
+  const st = stratum(k), reached = k <= S.codex, held = (S.stock[k] || 0) > 0 || (S.ore[k] || 0) > 0;
+  const known = reached || held;
+  const note = reached ? '' : held ? ` <span class="q">from pockets · lies below ${fmtDepth(st.top)}</span>` : ` <span class="q">below ${fmtDepth(st.top)}</span>`;
+  return `<div class="mat"><span><span class="sw" style="background:${known ? st.ore : 'var(--line)'};box-shadow:0 0 0 1px rgba(255,255,255,.25)"></span>${known ? st.mineral : 'Unknown mineral'}${note}</span>
+    <span class="q">${fmt(have)} / ${fmt(need)}</span><div class="bar"><i style="width:${Math.min(100, have / need * 100)}%"></i></div></div>`;
+}
+function yardUi(force) {
+  const n = shippable();
+  $('#shipBtn2').disabled = n < 0.5;
+  $('#shipBtn2').textContent = shipLabel(n);
+  let tot = 0; for (const k in S.stock) tot += S.stock[k];
+  $('#yardStock').textContent = `${fmt(tot)} loads in stock`;
+  $('#shipStatus').textContent = S.launched ? `In deep space · Mk ${roman(S.refits + 1)} · endless mode`
+    : S.ship >= STAGES.length ? 'Every stage is built. Ready to launch.' : `Stage ${S.ship + 1} of ${STAGES.length} · ${STAGES[S.ship].name}`;
+  const sig = [S.ship, S.launched, S.refits, S.codex, launchT ? 1 : 0, ...Object.keys(S.stock).map(k => k + ':' + Math.floor(S.stock[k]))].join('|');
+  if (sig === yardSig) return;
+  yardSig = sig;
+  let html = '';
+  if (!S.launched) {
+    const avail = Object.assign({}, S.stock);
+    STAGES.forEach((st, i) => {
+      const state = i < S.ship ? 'built' : i === S.ship ? 'current' : 'future';
+      let rows = '';
+      if (state !== 'built') for (const k in st.mats) { const need = st.mats[k], have = Math.max(0, Math.min(need, avail[k] || 0)); avail[k] = (avail[k] || 0) - have; rows += matRow(+k, have, need); }
+      const ready = state === 'current' && matsReady(st.mats);
+      const pill = state === 'built' ? '<span class="pill built">Built</span>' : ready ? '<span class="pill ready">Ready to build</span>' : `<span class="pill">${state === 'current' ? 'Collecting' : 'Planned'}</span>`;
+      html += `<div class="stage ${state}"><div class="stage-h"><span class="t">Stage ${i + 1} · ${st.name}</span>${pill}</div>${rows}
+        ${state === 'built' ? '' : `<div class="rw">Reward: <b>${st.reward}</b></div>`}
+        ${state === 'current' ? `<button class="btn shard" type="button" data-build ${ready ? '' : 'disabled'}>Build ${st.name}</button>` : ''}</div>`;
+    });
+  } else {
+    const m = refitMats(S.refits), ready = matsReady(m); let rows = '';
+    for (const k in m) rows += matRow(+k, Math.min(m[k], S.stock[k] || 0), m[k]);
+    html = `<div class="stage current"><div class="stage-h"><span class="t">Refit Mk ${roman(S.refits + 2)}</span><span class="pill ${ready ? 'ready' : ''}">${ready ? 'Ready' : 'Collecting'}</span></div>${rows}
+      <div class="rw">Reward: <b>drill speed and ore prices ×1.25, for good.</b> Each refit needs more of your three deepest minerals.</div>
+      <button class="btn shard" type="button" data-build ${ready ? '' : 'disabled'}>Start refit</button></div>`;
+  }
+  $('#stages').innerHTML = html;
+  const b = $('#stages [data-build]'); if (b) b.addEventListener('click', buildNext);
+  const lb = $('#launchBtn');
+  lb.hidden = !(S.ship >= STAGES.length && !S.launched);
+  if (!launchT) { lb.disabled = false; lb.textContent = 'Launch Meridian'; }
+}
+
+/* ---------- shipyard canvas ---------- */
+const yv = $('#yv'), YPL = pixelLayer(yv, $('#yvText')), yx = YPL.ctx;
+let YW = 0, YH = 0;
+new ResizeObserver(() => {
+  const r = yv.getBoundingClientRect();
+  YW = r.width; YH = r.height; YPL.resize(YW, YH);
+}).observe(yv);
+const STARS = Array.from({ length: 150 }, (_, k) => ({ x: hash(k, 3), y: hash(7, k), r: 0.4 + hash(k, k + 11) * 1.3, p: hash(k + 5, 2) * 6.28 }));
+const puffs = [];
+function hullPath(c, cx, top, h, w) {
+  const L = cx - w / 2, R = cx + w / 2, sh = top + h * 0.26, base = top + h * 0.86;
+  c.beginPath(); c.moveTo(cx, top);
+  c.bezierCurveTo(R, top + h * 0.06, R, sh - h * 0.06, R, sh); c.lineTo(R, base); c.lineTo(L, base); c.lineTo(L, sh);
+  c.bezierCurveTo(L, sh - h * 0.06, L, top + h * 0.06, cx, top); c.closePath();
+}
+function finPaths(c, cx, top, h, w) {
+  const base = top + h * 0.86;
+  c.beginPath();
+  for (const d of [-1, 1]) { const x = cx + d * w / 2; c.moveTo(x, base - h * 0.2); c.lineTo(x + d * w * 0.5, base + h * 0.05); c.lineTo(x + d * w * 0.5, base + h * 0.1); c.lineTo(x, base); c.closePath(); }
+}
+function bellPath(c, cx, top, h, w) {
+  const base = top + h * 0.86;
+  c.beginPath(); c.moveTo(cx - w * 0.26, base); c.lineTo(cx + w * 0.26, base); c.lineTo(cx + w * 0.36, base + h * 0.1); c.lineTo(cx - w * 0.36, base + h * 0.1); c.closePath();
+}
+function renderYard(now) {
+  requestAnimationFrame(renderYard);
+  if (activeScreen !== 'yard' || !YW || !YH) return;
+  YPL.begin();
+  const c = yx, W2 = YW, H2 = YH, t = now / 1000;
+  const lp = launchT ? (now - launchT) / 4500 : 0;
+  if (launchT && lp >= 1) finishLaunch();
+  c.save();
+  if (lp > 0 && lp < 0.7 && !reduceMotion) c.translate((Math.random() - .5) * 6 * (1 - lp), (Math.random() - .5) * 6 * (1 - lp));
+  // sky, stars, a pale moon over an alien ridge
+  const g = c.createLinearGradient(0, 0, 0, H2); g.addColorStop(0, '#060912'); g.addColorStop(.68, '#151b2b'); g.addColorStop(1, '#3b2519');
+  c.fillStyle = g; c.fillRect(-10, -10, W2 + 20, H2 + 20);
+  for (const st of STARS) { c.globalAlpha = 0.3 + 0.35 * (reduceMotion ? 1 : Math.sin(t * 1.4 + st.p) * .5 + .5); c.fillStyle = '#dfe6ff'; c.beginPath(); c.arc(st.x * W2, st.y * H2 * 0.72, 1.2 + st.r, 0, 7); c.fill(); }
+  c.globalAlpha = 1;
+  c.fillStyle = 'rgba(232,196,160,.16)'; c.beginPath(); c.arc(W2 * 0.84, H2 * 0.2, 28, 0, 7); c.fill();
+  c.fillStyle = 'rgba(232,196,160,.1)'; c.beginPath(); c.arc(W2 * 0.78, H2 * 0.27, 11, 0, 7); c.fill();
+  const groundY = Math.round(H2 * 0.84);
+  c.fillStyle = '#1c1411'; c.beginPath(); c.moveTo(-10, groundY);
+  for (let x = -40; x <= W2 + 40; x += 36) c.lineTo(x, groundY - 26 - 44 * hash(Math.floor((x + 40) / 36), 9));
+  c.lineTo(W2 + 10, groundY); c.closePath(); c.fill();
+  c.fillStyle = '#2b1d16'; c.fillRect(-10, groundY, W2 + 20, H2 - groundY + 10);
+
+  const h = Math.min(H2 * 0.6, 420), w = h * 0.2, cx = Math.round(W2 * 0.55);
+  const padY = groundY - 8, top0 = padY - h;
+  const lift = lp > 0 ? Math.pow(lp, 2.2) * (H2 + h * 1.2) : 0, top = top0 - lift;
+  const shipHere = !S.launched || launchT;
+  // pad
+  c.fillStyle = '#4a4f58'; c.fillRect(cx - w * 1.6, padY, w * 3.2, 8);
+  c.fillStyle = '#f0b429'; for (let x = cx - w * 1.6; x < cx + w * 1.6; x += 14) c.fillRect(x, padY, 7, 3);
+  // gantry
+  if (S.ship >= 1) {
+    const gx = cx - w * 1.5, gw = w * 0.42, gt = top0 + h * 0.1;
+    c.strokeStyle = '#8b909a'; c.lineWidth = 2; c.beginPath();
+    c.moveTo(gx, padY); c.lineTo(gx, gt); c.moveTo(gx + gw, padY); c.lineTo(gx + gw, gt);
+    for (let y = padY; y > gt; y -= 18) { c.moveTo(gx, y); c.lineTo(gx + gw, y - 18); c.moveTo(gx, y); c.lineTo(gx + gw, y); }
+    if (!lp && shipHere) { const ay = top0 + h * 0.32; c.moveTo(gx + gw, ay); c.lineTo(cx - w / 2, ay); c.moveTo(gx + gw, ay + 6); c.lineTo(cx - w / 2, ay + 6); }
+    c.stroke();
+    c.fillStyle = Math.floor(t * 1.6) % 2 ? '#e8705f' : '#5a2a22'; c.beginPath(); c.arc(gx + gw / 2, gt - 5, 3.5, 0, 7); c.fill();
+  }
+  // blueprint outline of the finished ship
+  if (S.ship < 2 && shipHere) {
+    c.setLineDash([6, 5]); c.strokeStyle = 'rgba(143,208,245,.5)'; c.lineWidth = 1.5;
+    hullPath(c, cx, top0, h, w); c.stroke(); finPaths(c, cx, top0, h, w); c.stroke(); bellPath(c, cx, top0, h, w); c.stroke();
+    c.setLineDash([]);
+    c.fillStyle = 'rgba(143,208,245,.65)'; c.font = '18px "VT323", monospace'; c.textAlign = 'center';
+    c.fillText('BLUEPRINT', cx, top0 + h * 0.5);
+  }
+  if (shipHere && S.ship >= 2) {
+    // flame
+    if (lp > 0) {
+      const base = top + h * 0.96, fl = h * (0.3 + 0.5 * Math.min(1, lp * 3)) * (0.9 + Math.random() * 0.2);
+      const fg = c.createLinearGradient(0, base, 0, base + fl); fg.addColorStop(0, '#fff6d8'); fg.addColorStop(.35, '#ffb347'); fg.addColorStop(1, 'rgba(255,90,40,0)');
+      c.fillStyle = fg; c.beginPath(); c.moveTo(cx - w * 0.36, base); c.lineTo(cx + w * 0.36, base); c.lineTo(cx, base + fl); c.closePath(); c.fill();
+      if (lift < h * 1.5) for (let k = 0; k < 3; k++) puffs.push({ x: cx + (Math.random() - .5) * w, y: groundY - 4, vx: (Math.random() - .5) * 260, vy: -Math.random() * 30, life: 1.4, r: 10 + Math.random() * 14 });
+    }
+    // boosters
+    if (S.ship >= 4) for (const d of [-1, 1]) {
+      const bx = cx + d * (w / 2 + w * 0.15), bw = w * 0.26, bt = top + h * 0.5, bb = top + h * 0.88;
+      c.fillStyle = '#9aa0a9'; c.beginPath(); c.moveTo(bx - bw / 2, bb); c.lineTo(bx - bw / 2, bt + bw); c.quadraticCurveTo(bx, bt - bw * 0.4, bx + bw / 2, bt + bw); c.lineTo(bx + bw / 2, bb); c.closePath(); c.fill();
+      c.fillStyle = `rgba(94,240,224,${0.45 + 0.4 * Math.sin(t * 3 + d)})`;
+      c.fillRect(bx - bw / 2, top + h * 0.62, bw, h * 0.025); c.fillRect(bx - bw / 2, top + h * 0.76, bw, h * 0.025);
+    }
+    c.fillStyle = '#3d424b'; finPaths(c, cx, top, h, w); c.fill();
+    c.fillStyle = '#2a2d33'; bellPath(c, cx, top, h, w); c.fill();
+    const mg = c.createLinearGradient(cx - w / 2, 0, cx + w / 2, 0);
+    mg.addColorStop(0, '#666c76'); mg.addColorStop(.42, '#e4e8ed'); mg.addColorStop(1, '#858b94');
+    c.fillStyle = mg; hullPath(c, cx, top, h, w); c.fill();
+    c.save(); hullPath(c, cx, top, h, w); c.clip();
+    c.strokeStyle = 'rgba(0,0,0,.22)'; c.lineWidth = 1; c.beginPath();
+    for (let k = 1; k < 7; k++) { const y = top + h * (0.26 + k * 0.085); c.moveTo(cx - w, y); c.lineTo(cx + w, y); }
+    c.stroke();
+    if (S.ship >= 5) { // heat-shield tiles on the lower body
+      c.fillStyle = 'rgba(24,26,30,.88)'; c.fillRect(cx - w, top + h * 0.62, w * 2, h * 0.3);
+      c.strokeStyle = 'rgba(255,255,255,.08)'; c.beginPath();
+      for (let y = top + h * 0.62; y < top + h * 0.9; y += 7) { c.moveTo(cx - w, y); c.lineTo(cx + w, y); }
+      for (let x = cx - w; x < cx + w; x += 7) { c.moveTo(x, top + h * 0.62); c.lineTo(x, top + h * 0.9); }
+      c.stroke();
+    }
+    if (S.ship >= 3) { c.fillStyle = '#f0b429'; for (let x = cx - w; x < cx + w; x += 10) { c.beginPath(); c.moveTo(x, top + h * 0.56); c.lineTo(x + 5, top + h * 0.56); c.lineTo(x + 10, top + h * 0.58); c.lineTo(x + 5, top + h * 0.58); c.closePath(); c.fill(); } }
+    c.restore();
+    if (S.ship >= 3) { // portholes + antenna
+      for (let k = 0; k < 3; k++) { c.fillStyle = '#0d2733'; c.beginPath(); c.arc(cx, top + h * (0.3 + k * 0.07), w * 0.1, 0, 7); c.fill(); c.fillStyle = 'rgba(143,208,245,.85)'; c.beginPath(); c.arc(cx, top + h * (0.3 + k * 0.07), w * 0.07, 0, 7); c.fill(); }
+      c.strokeStyle = '#8b909a'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(cx, top); c.lineTo(cx, top - 16); c.stroke();
+      c.fillStyle = Math.floor(t * 2) % 2 ? '#e8705f' : '#3a1a16'; c.beginPath(); c.arc(cx, top - 17, 2.5, 0, 7); c.fill();
+    }
+    if (S.ship >= 5) { // lens ring around the nose
+      c.strokeStyle = `rgba(143,208,245,${0.5 + 0.3 * Math.sin(t * 2)})`; c.lineWidth = 2.5;
+      c.beginPath(); c.ellipse(cx, top + h * 0.15, w * 0.48, w * 0.12, 0, 0, 7); c.stroke();
+      c.strokeStyle = 'rgba(197,140,240,.55)'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(cx, top + h * 0.15, w * 0.6, w * 0.16, 0, 0, 7); c.stroke();
+    }
+    if (S.ship >= 6) { // warp core glow
+      const pulse = 0.6 + 0.4 * Math.sin(t * 2.6);
+      c.shadowColor = '#c58cf0'; c.shadowBlur = 18 * pulse; c.fillStyle = `rgba(197,140,240,${0.55 + 0.35 * pulse})`;
+      c.beginPath(); c.ellipse(cx, top + h * 0.5, w * 0.16, h * 0.035, 0, 0, 7); c.fill();
+      c.beginPath(); c.ellipse(cx, top + h * 0.965, w * 0.3, h * 0.012, 0, 0, 7); c.fill(); c.shadowBlur = 0;
+      if (!lp && Math.random() < 0.08) puffs.push({ x: cx + (Math.random() - .5) * w * 0.6, y: padY - 2, vx: (Math.random() - .5) * 40, vy: -10, life: 2, r: 6 + Math.random() * 6 });
+    }
+  }
+  // launched and gone: a bright point drifting among the stars
+  if (S.launched && !launchT) {
+    const p = (t * 0.015) % 1, sx = W2 * (0.15 + 0.7 * p), sy = H2 * (0.32 - 0.1 * Math.sin(p * Math.PI));
+    c.strokeStyle = 'rgba(143,208,245,.35)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(sx - 40, sy + 6); c.lineTo(sx, sy); c.stroke();
+    c.fillStyle = '#eaf6ff'; c.shadowColor = '#8fd0f5'; c.shadowBlur = 10; c.beginPath(); c.arc(sx, sy, 2.5, 0, 7); c.fill(); c.shadowBlur = 0;
+  }
+  // smoke and vapor
+  for (let k = puffs.length - 1; k >= 0; k--) {
+    const p = puffs[k]; p.life -= 1 / 60; if (p.life <= 0) { puffs.splice(k, 1); continue; }
+    p.x += p.vx / 60; p.y += p.vy / 60; p.vx *= 0.97; p.r += 0.4;
+    c.fillStyle = `rgba(200,196,190,${0.25 * p.life})`; c.beginPath(); c.arc(p.x, p.y, p.r, 0, 7); c.fill();
+  }
+  if (puffs.length > 400) puffs.splice(0, puffs.length - 400);
+  // build flash
+  const bt = (now - yardBurst) / 1000;
+  if (bt < 1.2 && shipHere) { c.strokeStyle = `rgba(143,208,245,${1 - bt / 1.2})`; c.lineWidth = 3; c.beginPath(); c.arc(cx, top0 + h * 0.5, 30 + bt * 220, 0, 7); c.stroke(); }
+  c.restore();
+  YPL.end();
+}
+
+/* ================= 8-bit edition: camp, windows, start screen and story ================= */
+let GAME_PAUSED = true; // the title screen and story hold the simulation
+const HEX = { k: '#1a1c2c', p: '#5d275d', r: '#b13e53', o: '#ef7d57', y: '#ffcd75', l: '#a7f070', g: '#38b764', t: '#257179', n: '#29366f', b: '#3b5dc9',
+  c: '#41a6f6', a: '#73eff7', w: '#f4f4f4', s: '#94b0c2', d: '#566c86', m: '#333c57', 1: '#2b1e1a', 2: '#5a3a2b', 3: '#8a5a3c', 4: '#c49a6c', v: '#c86bd6' };
+
+/* ---------- 8×8 pixel icons ---------- */
+const ICONS = {
+  coin: ['..yyyy..', '.yywwyy.', 'yywyyyoy', 'yyyyyyoy', 'yyyyyyoy', 'yyyyyooy', '.yyoooy.', '..yyyy..'],
+  gem: ['..aaaa..', '.awwaaa.', 'awaaaaac', 'aaaaaacc', '.aaaacc.', '..aacc..', '...cc...', '........'],
+  clock: ['wwwwwwww', '.y....y.', '..yyyy..', '...yy...', '...yy...', '..y..y..', '.yyyyyy.', 'wwwwwwww'],
+  cart: ['........', '..yyyy..', '.yoyyoy.', 'dddddddd', '.dddddd.', '.d....d.', '.k....k.', '........'],
+  flame: ['...o....', '...oo...', '..ooo...', '..oyoo..', '.ooyyo..', '.oyyyyo.', '.oywwyo.', '..oooo..'],
+  gear: ['...dd...', '.d.ss.d.', '..ssss..', 'dss..ssd', 'dss..ssd', '..ssss..', '.d.ss.d.', '...dd...'],
+  sack: ['...33...', '..3..3..', '...33...', '..3443..', '.344y43.', '34y4y443', '3444y443', '.333333.'],
+  book: ['.rrrrrr.', 'rwwwwwwr', 'rwkkkkwr', 'rwwwwwwr', 'rwkkkwwr', 'rwwwwwwr', 'rrrrrrrr', '.pppppp.'],
+  flag: ['wrrrr...', 'wrrrrrr.', 'wrrrr...', 'w.......', 'w.......', 'w.......', 'w.......', 'ww......'],
+  rocket: ['...ww...', '..wssw..', '..saas..', '..ssss..', '..ssss..', '.rssssr.', 'rr.dd.rr', '...oo...'],
+};
+function iconSvg(name) {
+  let r = '';
+  (ICONS[name] || []).forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${HEX[ch]}"/>`; }));
+  return `<svg class="pxi" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+}
+document.querySelectorAll('[data-ico]').forEach(el => { el.outerHTML = iconSvg(el.dataset.ico); });
+
+/* ---------- RPG windows: every camp building opens one ---------- */
+const WIN_TITLES = { rig: 'Workshop', ore: 'Assay Office', skills: 'Archive', prestige: 'Claims Office', yard: 'Meridian Shipyard' };
+let winOpen = null, winReturn = null;
+function openWin(kind) {
+  winReturn = document.activeElement;
+  if (kind === 'yard') setScreen('yard');
+  else { setScreen('site'); document.querySelector(`.tab[data-tab="${kind}"]`).click(); }
+  winOpen = kind;
+  $('#winTitle').textContent = WIN_TITLES[kind];
+  $('#winScrim').hidden = false;
+  $('#winClose').focus();
+  uiTick(true);
+}
+function closeWin() {
+  $('#winScrim').hidden = true; winOpen = null;
+  if (winReturn && winReturn.focus) winReturn.focus();
+}
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  if (winOpen && winOpen !== 'yard') { winOpen = t.dataset.tab; $('#winTitle').textContent = WIN_TITLES[winOpen]; }
+}));
+$('#winClose').addEventListener('click', closeWin);
+$('#winScrim').addEventListener('click', e => { if (e.target.id === 'winScrim') closeWin(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && winOpen) closeWin(); });
+document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => openWin(b.dataset.open)));
+
+/* ---------- quest markers: a bouncing "!" where something is ready ---------- */
+function campFlags() {
+  return {
+    rig: UPGS.some(u => !(u.max && S.up[u.id] >= u.max) && costOf(u, S.up[u.id]) <= S.credits),
+    ore: S.full || hopperFill() > 0.85,
+    skills: SKILLS.some(k => skillOpen(k) && S.shards >= skillCost(k)),
+    prestige: !S.launched && S.permit <= 120,
+    yard: yardReady(),
+  };
+}
+setInterval(() => {
+  const f = campFlags();
+  for (const k in f) document.querySelectorAll(`[data-mk="${k}"]`).forEach(m => { m.hidden = !f[k]; });
+}, 300);
+
+/* ---------- surface camp, drawn pixel by pixel ---------- */
+const townBox = $('#townBox'), townCv = $('#town'), tc = townCv.getContext('2d');
+let TS = 2, TW = 0, TH = 0, GY = 0, DX = 0, townBg = null, POS = {};
+const BLD = [
+  { id: 'prestige', name: 'Claims Office', fx: 0.03, w: 14, h: 18 },
+  { id: 'rig', name: 'Workshop', fx: 0.14, w: 22, h: 18 },
+  { id: 'skills', name: 'Archive', fx: 0.32, w: 20, h: 18 },
+  { id: 'ore', name: 'Assay Office', fx: 0.66, w: 20, h: 15 },
+  { id: 'yard', name: 'Shipyard', fx: 0.82, w: 22, h: 40 },
+];
+$('#blds').innerHTML = BLD.map(b => `<button type="button" data-bld="${b.id}" aria-label="${b.name}"><span class="tag">${b.name}</span><b class="mk" data-mk="${b.id}" hidden>!</b></button>`).join('');
+document.querySelectorAll('[data-bld]').forEach(b => b.addEventListener('click', () => openWin(b.dataset.bld)));
+const smooth = (x, seed) => { const i = Math.floor(x), f = x - i, a = hash(i, seed), b = hash(i + 1, seed); return a + (b - a) * (f * f * (3 - 2 * f)); };
+function painter(c) { return (x, y, w, h, col) => { c.fillStyle = HEX[col] || col; c.fillRect(Math.round(x), Math.round(y), w, h); }; }
+function layoutTown() {
+  const r = townBox.getBoundingClientRect(); if (!r.width || !r.height) return;
+  TS = r.width >= 600 ? 3 : 2;
+  TW = Math.ceil(r.width / TS); TH = Math.ceil(r.height / TS);
+  townCv.width = TW; townCv.height = TH;
+  GY = TH - 8;
+  DX = Math.round(Math.max(110, r.width * 0.56) / TS); // lines up with the drill string in the borehole below
+  POS = {}; let prevEnd = -1;
+  for (const b of BLD) {
+    let x = Math.round(b.fx * TW);
+    if (b.id === 'skills') x = Math.min(x, DX - 14 - b.w);
+    if (b.id === 'ore') x = Math.max(x, DX + 14);
+    if (b.id === 'yard') x = Math.max(x, POS.ore.x + POS.ore.w + 4);
+    x = Math.max(x, prevEnd + 2);
+    POS[b.id] = { x, w: b.w, h: b.h }; prevEnd = x + b.w;
+    const el = document.querySelector(`[data-bld="${b.id}"]`);
+    Object.assign(el.style, { left: x * TS + 'px', top: (GY - b.h) * TS + 'px', width: b.w * TS + 'px', height: (b.h + 2) * TS + 'px' });
+  }
+  townBg = buildTownBg();
+}
+function ditherSky(R, w, h, bands, curve) {
+  for (let y = 0; y < h; y++) {
+    const f = Math.pow(y / h, curve) * (bands.length - 1), i = Math.min(bands.length - 1, Math.floor(f)), fr = f - i;
+    R(0, y, w, 1, bands[i]);
+    if (i + 1 < bands.length && fr > 0.33) {
+      const dense = fr > 0.66;
+      if (dense || (y & 1) === 0) for (let x = (y >> (dense ? 0 : 1)) & 1; x < w; x += 2) R(x, y, 1, 1, bands[i + 1]);
+    }
+  }
+}
+function discR(R, cx, cy, r, col, clipY) {
+  for (let dy = -r; dy <= r; dy++) { if (cy + dy > clipY) break; const hw = Math.round(Math.sqrt(r * r - dy * dy)); R(cx - hw, cy + dy, hw * 2 + 1, 1, col); }
+}
+function buildTownBg() {
+  const o = document.createElement('canvas'); o.width = TW; o.height = TH;
+  const R = painter(o.getContext('2d'));
+  ditherSky(R, TW, GY, ['k', 'n', 'p', 'r'], 1.5);
+  for (let k = 0; k < 46; k++) R(Math.floor(hash(k, 1) * TW), Math.floor(hash(2, k) * GY * 0.55), 1, 1, k % 3 ? 's' : 'w');
+  // the swollen sun, low over the ridge
+  const sx = Math.round(TW * 0.25), sy = GY - 3, sr = Math.round(TH * 0.42);
+  discR(R, sx, sy, sr, 'r', GY); discR(R, sx, sy, sr - 3, 'o', GY); discR(R, sx, sy, Math.round(sr * 0.55), 'y', GY);
+  for (let x = 0; x < TW; x++) { const h = Math.round(5 + 9 * smooth(x / 9, 7)); R(x, GY - h, 1, h, 'm'); }
+  for (let x = 0; x < TW; x++) { const h = Math.round(2 + 5 * smooth(x / 5, 9)); R(x, GY - h, 1, h, 'k'); }
+  R(0, GY, TW, 1, 't'); R(0, GY + 1, TW, TH - GY - 1, '2');
+  for (let k = 0; k < TW * 0.6; k++) R(Math.floor(hash(k, 31) * TW), GY + 2 + Math.floor(hash(33, k) * (TH - GY - 2)), 1, 1, k % 2 ? '3' : '1');
+  drawClaims(R, POS.prestige.x); drawWorkshop(R, POS.rig.x); drawArchive(R, POS.skills.x); drawAssay(R, POS.ore.x);
+  return o;
+}
+function drawWorkshop(R, x) {
+  const g = GY;
+  R(x + 1, g - 10, 20, 10, 'r');
+  for (let yy = g - 9, j = 0; yy < g; yy += 3, j++) { R(x + 1, yy, 20, 1, 'p'); for (let xx = x + 3 + (j & 1) * 2; xx < x + 21; xx += 4) R(xx, yy + 1, 1, 2, 'p'); }
+  R(x, g - 11, 22, 1, 'd'); R(x + 2, g - 12, 18, 1, 'd'); R(x + 4, g - 13, 14, 1, 'd'); R(x + 6, g - 14, 10, 1, 's');
+  R(x + 16, g - 17, 3, 5, 'm'); R(x + 15, g - 17, 5, 1, 'd');
+  R(x + 9, g - 8, 4, 8, '1'); R(x + 12, g - 4, 1, 1, 'y');
+  R(x + 3, g - 7, 4, 3, 'y'); R(x + 3, g - 6, 4, 1, 'o'); R(x + 15, g - 7, 4, 3, 'y'); R(x + 15, g - 6, 4, 1, 'o');
+  R(x + 10, g - 10, 2, 1, 'y'); R(x + 9, g - 11, 4, 1, 'y');
+}
+function drawAssay(R, x) {
+  const g = GY;
+  R(x + 1, g - 10, 18, 10, '3');
+  for (let xx = x + 3; xx < x + 19; xx += 3) R(xx, g - 10, 1, 10, '2');
+  R(x, g - 11, 20, 1, '2'); R(x + 3, g - 14, 14, 3, '4'); R(x + 3, g - 15, 14, 1, '2');
+  R(x + 9, g - 13, 2, 1, 'y'); R(x + 8, g - 14, 1, 1, '2');
+  R(x + 8, g - 6, 4, 6, '1'); R(x + 3, g - 7, 3, 3, 'a'); R(x + 14, g - 7, 3, 3, 'a');
+}
+function drawArchive(R, x) {
+  const g = GY;
+  R(x + 2, g - 8, 16, 8, 's');
+  for (let yy = g - 6; yy < g; yy += 2) R(x + 2, yy, 16, 1, 'd');
+  R(x + 3, g - 8, 2, 8, 'w'); R(x + 15, g - 8, 2, 8, 'w');
+  R(x + 1, g - 1, 18, 1, 'd'); R(x + 1, g - 9, 18, 1, 'd');
+  [14, 12, 10, 8, 4].forEach((w, i) => R(x + 10 - w / 2, g - 10 - i, w, 1, i === 1 ? 'a' : 'c'));
+  R(x + 9, g - 17, 2, 3, 'a'); R(x + 8, g - 6, 4, 6, 'n');
+}
+function drawClaims(R, x) {
+  const g = GY;
+  R(x + 1, g - 7, 11, 7, '4');
+  [13, 11, 7, 3].forEach((w, i) => R(x + 6.5 - w / 2, g - 8 - i, w, 1, 'o'));
+  R(x + 4, g - 5, 3, 5, '2'); R(x + 8, g - 5, 3, 3, 'w'); R(x + 8, g - 4, 2, 1, 'd');
+  R(x + 13, g - 18, 1, 18, 's');
+}
+function drawDerrick(R, t) {
+  const h = Math.min(34, GY - 6), top = GY - h;
+  R(DX - 1, top, 2, TH - top, 's'); R(DX, top, 1, TH - top, 'w'); // the drill string runs on into the borehole below
+  for (let k = 0; k <= h; k++) {
+    const hw = Math.round(9 - k * (7 / h)), y = GY - k;
+    R(DX - hw, y, 1, 1, 'd'); R(DX + hw, y, 1, 1, 'd');
+    if (k && k % 6 === 0) R(DX - hw, y, hw * 2 + 1, 1, 'd');
+    if (k % 6 < 5) { const f = (k % 6) / 6, xx = Math.round(DX - hw + f * hw * 2); R(xx, y, 1, 1, 'm'); }
+  }
+  R(DX - 3, top - 2, 7, 2, 's');
+  R(DX - 12, GY - 1, 24, 2, 'm'); for (let x = DX - 12; x < DX + 12; x += 4) R(x, GY - 1, 2, 1, 'y');
+  R(DX, top - 4, 1, 2, Math.floor(t * 1.6) % 2 ? 'r' : '2');
+}
+// ship drawn in local pixel units: put(dx, dy, w, h, colour) relative to the nose tip
+function drawShipLocal(put, st, t, flame) {
+  const hwAt = r => r < 2 ? 1 : r < 4 ? 2 : r < 6 ? 3 : 4;
+  if (st < 2) {
+    const ph = Math.floor(t * 4);
+    for (let r = 0; r < 26; r++) { if ((r + ph) % 2) continue; const hw = hwAt(r); put(-hw, r, 1, 1, 'c'); put(hw - 1, r, 1, 1, 'c'); }
+    for (let k = 0; k < 6; k += 2) { put(-5 - (k >> 1), 20 + k, 1, 1, 'c'); put(4 + (k >> 1), 20 + k, 1, 1, 'c'); }
+    put(-2, 26, 4, 1, 'c');
+    return;
+  }
+  if (st >= 4) for (const bx of [-6, 4]) {
+    put(bx, 13, 2, 12, 'd'); put(bx, 12, 2, 1, 's');
+    const pulse = Math.floor(t * 3 + bx) % 2;
+    put(bx, 16, 2, 1, pulse ? 'a' : 't'); put(bx, 20, 2, 1, pulse ? 't' : 'a');
+  }
+  for (let k = 0; k < 6; k++) { const fw = 1 + (k >> 1); put(-4 - fw, 20 + k, fw, 1, 'r'); put(4, 20 + k, fw, 1, 'r'); }
+  for (let r = 0; r < 26; r++) { const hw = hwAt(r); put(-hw, r, hw * 2, 1, 's'); put(-hw, r, 1, 1, 'd'); if (hw > 1) put(hw - 2, r, 1, 1, 'w'); }
+  put(-2, 26, 4, 2, 'm');
+  if (st >= 5) for (let r = 17; r < 26; r++) for (let x = -4; x < 4; x++) put(x, r, 1, 1, ((x + r) & 1) ? 'k' : 'm');
+  if (st >= 3) {
+    put(-1, 7, 2, 2, 'a'); put(0, -3, 1, 3, 's'); put(0, -4, 1, 1, Math.floor(t * 2) % 2 ? 'o' : 'r');
+    for (let x = -4; x < 4; x++) put(x, 14, 1, 1, (x & 1) ? 'y' : 'k');
+  }
+  if (st >= 5) put(-6, 5, 12, 1, Math.floor(t * 3) % 3 ? 'a' : 'c');
+  if (st >= 6) { put(-1, 10, 2, 3, Math.floor(t * 2.6) % 2 ? 'v' : 'p'); if (!flame) put(-2, 28, 4, 1, 'v'); }
+  if (flame) {
+    const L = 4 + Math.floor(Math.random() * 4) + Math.floor(flame * 10);
+    for (let i = 0; i < L; i++) { const w = Math.max(1, 4 - Math.floor(i / 3)); put(-Math.floor(w / 2), 28 + i, w, 1, i < 1 ? 'w' : i < 3 ? 'y' : 'o'); }
+  }
+}
+function drawYard(R, t, now) {
+  const P = POS.yard, cx = P.x + 12, by = GY - 2;
+  R(P.x + 1, GY - 2, 21, 2, 'd'); for (let x = P.x + 1; x < P.x + 22; x += 3) R(x, GY - 2, 2, 1, 'y');
+  const st = S.ship;
+  if (launchT && now - launchT >= 4500) finishLaunch();
+  const lp = launchT ? Math.min(1.2, (now - launchT) / 4500) : 0;
+  if (st >= 1) {
+    const gx = P.x + 1;
+    R(gx, by - 32, 1, 32, 'o'); R(gx + 3, by - 32, 1, 32, 'o');
+    for (let y = by - 32; y < by; y += 3) R(gx + 1, y, 2, 1, 'o');
+    if (!lp && !S.launched) R(gx + 4, by - 22, cx - 4 - (gx + 4), 1, 'o');
+  }
+  if (S.launched && !launchT) {
+    const px = Math.floor((t * 7) % (TW + 30)) - 15, py = 6 + Math.round(Math.sin(t * 0.7) * 2);
+    R(px, py, 1, 1, 'w'); R(px - 1, py + 1, 1, 1, 'a'); R(px - 2, py + 1, 1, 1, 'c');
+    return;
+  }
+  const lift = lp > 0 ? Math.pow(lp, 2.2) * (TH + 40) : 0, top = by - 30 - lift;
+  drawShipLocal((dx, dy, w, h, col) => R(cx + dx, top + dy, w, h, col), st, t, lp);
+  if (lp > 0 && lift < 30) for (let k = 0; k < 4; k++) R(cx + (Math.random() - 0.5) * 26, GY - 1 - Math.random() * 4, 2, 1, Math.random() < 0.5 ? 's' : 'd');
+}
+const carts = [];
+$('#sellBtn').addEventListener('click', () => carts.push({ t0: performance.now(), to: 'ore', col: 'y' }));
+['#shipBtn', '#shipBtn2'].forEach(id => $(id).addEventListener('click', () => carts.push({ t0: performance.now(), to: 'yard', col: 'a' })));
+function renderTown(now) {
+  requestAnimationFrame(renderTown);
+  if (!townBg || document.hidden) return;
+  const t = now / 1000, R = painter(tc);
+  tc.drawImage(townBg, 0, 0);
+  for (let k = 0; k < 7; k++) if (Math.floor(t * 1.5 + k * 1.7) % 4 === 0) R(Math.floor(hash(k, 51) * TW), Math.floor(hash(52, k) * GY * 0.5), 1, 1, 'w');
+  const W0 = POS.rig.x;
+  for (let k = 0; k < 5; k++) { const ph = (t * 0.45 + k / 5) % 1; R(W0 + 17 + Math.sin(ph * 6 + k) * 1.5 + ph * 5, GY - 18 - ph * 16, ph < 0.4 ? 2 : 1, 1, ph < 0.6 ? 's' : 'd'); }
+  const fx = POS.prestige.x + 14, fr = Math.floor(t * 3) % 2;
+  R(fx, GY - 18, 4, 1, 'r'); R(fx, GY - 17, fr ? 5 : 4, 1, 'r'); R(fx, GY - 16, fr ? 4 : 5, 1, 'r');
+  if (Math.floor(t * 1.2) % 3 === 0) R(POS.skills.x + 9, GY - 17, 1, 1, 'w');
+  drawDerrick(R, t);
+  drawYard(R, t, now);
+  for (let k = carts.length - 1; k >= 0; k--) {
+    const c = carts[k], p = (now - c.t0) / 1600; if (p >= 1) { carts.splice(k, 1); continue; }
+    const tx = c.to === 'ore' ? POS.ore.x + 10 : POS.yard.x + 12, x = DX + (tx - DX) * p;
+    R(x - 2, GY - 3, 5, 2, 'd'); R(x - 1, GY - 4, 3, 1, c.col); R(x - 2, GY - 1, 1, 1, 'k'); R(x + 2, GY - 1, 1, 1, 'k');
+  }
+}
+new ResizeObserver(layoutTown).observe(townBox);
+requestAnimationFrame(renderTown);
+
+/* ---------- start screen and story ---------- */
+let hadSave = false;
+try { hadSave = !!localStorage.getItem(SAVE_KEY); } catch (e) {}
+function sceneCanvas(cv) {
+  const c = cv.getContext('2d'), st = { s: 3, w: 1, h: 1, sky: {}, ready: false };
+  const fit = () => {
+    const r = cv.getBoundingClientRect(); if (!r.width) return;
+    st.s = Math.max(2, Math.round(Math.min(r.width, r.height) / 170));
+    st.w = Math.ceil(r.width / st.s); st.h = Math.ceil(r.height / st.s);
+    cv.width = st.w; cv.height = st.h; st.sky = {}; st.ready = true;
+  };
+  new ResizeObserver(fit).observe(cv);
+  return { c, st, R: painter(c) };
+}
+function cachedSky(sc, key, bands, curve, h) {
+  if (!sc.st.sky[key]) {
+    const o = document.createElement('canvas'); o.width = sc.st.w; o.height = h;
+    const R = painter(o.getContext('2d')); ditherSky(R, sc.st.w, h, bands, curve);
+    for (let k = 0; k < sc.st.w * 0.35; k++) { const y = Math.floor(hash(k, 61) * h * 0.6); if (y < h * 0.5) R(Math.floor(hash(62, k) * sc.st.w), y, 1, 1, k % 4 ? 's' : 'w'); }
+    sc.st.sky[key] = o;
+  }
+  sc.c.drawImage(sc.st.sky[key], 0, 0);
+}
+function ridge(R, w, base, amp, seed, col, h) { for (let x = 0; x < w; x++) { const hh = Math.round(amp * smooth(x / 11, seed)); R(x, base - hh, 1, hh + h, col); } }
+function sceneSun(sc, t, k) {
+  const { w, h } = sc.st, R = sc.R, hz = Math.round(h * 0.68);
+  cachedSky(sc, 'sun', ['k', 'p', 'r', 'o'], 1.7, hz);
+  const r = Math.round(h * (0.24 + 0.1 * k) + Math.sin(t * 2) * 1);
+  discR(R, w >> 1, hz + 4, r + 3, 'r', hz); discR(R, w >> 1, hz + 4, r, 'o', hz); discR(R, w >> 1, hz + 4, Math.round(r * 0.62), 'y', hz);
+  for (let i = 0; i < 14; i++) { const ph = (t * 0.3 + i / 14) % 1, x = Math.floor(hash(i, 71) * w); R(x, hz - 4 - ph * h * 0.35, 3 + (i % 3), 1, ph < 0.5 ? 'o' : 'r'); }
+  ridge(R, w, hz + 2, 10, 5, 'm', h); ridge(R, w, hz + 8, 6, 8, 'k', h);
+  const dx = Math.round(w * 0.7), dt = hz + 8 - 26;
+  for (let kk = 0; kk < 22; kk++) { const hw = Math.round(6 - kk * 0.2); R(dx - hw, hz + 6 - kk, 1, 1, 'k'); R(dx + hw, hz + 6 - kk, 1, 1, 'k'); }
+  R(dx, dt - 2, 1, 2, Math.floor(t * 1.6) % 2 ? 'r' : 'k');
+}
+function sceneFleet(sc, t) {
+  const { w, h } = sc.st, R = sc.R, hz = Math.round(h * 0.74);
+  cachedSky(sc, 'fleet', ['k', 'n', 'm'], 1.3, hz);
+  for (let i = 0; i < 6; i++) {
+    const sp = 9 + i * 4, x = Math.round(w * (0.12 + i * 0.15)), y = Math.round(hz - 6 - ((t * sp + i * 37) % (hz + 30)));
+    for (let tr = 0; tr < 14; tr += 2) R(x, y + 9 + tr, 2, 1, tr < 6 ? 'o' : 'd');
+    R(x, y, 2, 6, 'w'); R(x, y - 1, 2, 1, 's'); R(x - 1, y + 4, 1, 2, 's'); R(x + 2, y + 4, 1, 2, 's');
+    R(x, y + 6, 2, 2 + Math.floor(Math.random() * 2), 'y');
+  }
+  ridge(R, w, hz, 7, 12, 'k', h);
+  for (let i = 0; i < 5; i++) { const x = Math.round(w * (0.12 + i * 0.18)); R(x - 4, hz + 2, 10, 2, 'd'); }
+}
+function sceneHull(sc, t, k) {
+  const { w, h } = sc.st, R = sc.R, hz = Math.round(h * 0.76);
+  cachedSky(sc, 'hull', ['k', 'n', 'p', 'r'], 1.6, hz);
+  ridge(R, w, hz, 8, 21, 'm', h); R(0, hz, w, h - hz, 'k');
+  const sc2 = Math.max(2, Math.round(h / 70)), cx = w >> 1, top = hz - 30 * sc2 - 2;
+  R(cx - 14 * sc2, hz - 2, 28 * sc2, 2, 'd');
+  for (let x = cx - 14 * sc2; x < cx + 14 * sc2; x += 4) R(x, hz - 2, 2, 1, 'y');
+  drawShipLocal((dx, dy, ww, hh, col) => R(cx + dx * sc2, top + dy * sc2, ww * sc2, hh * sc2, col), 0, t, 0);
+  const gx = cx - 12 * sc2; for (let y = hz - 32 * sc2; y < hz - 2; y += 3) R(gx, y, 3, 1, 'o');
+}
+function sceneRig(sc, t, k) {
+  const { w, h } = sc.st, R = sc.R, gl = Math.round(h * 0.38);
+  cachedSky(sc, 'rig', ['k', 'n', 'p'], 1.2, gl);
+  const layers = ['t', '2', '3', 'm', '1', 'p'], lh = Math.ceil((h - gl) / (layers.length - 0.5));
+  layers.forEach((col, i) => R(0, gl + i * lh, w, lh, col));
+  for (let i = 0; i < w * 0.5; i++) { const x = Math.floor(hash(i, 81) * w), y = gl + 3 + Math.floor(hash(82, i) * (h - gl)); R(x, y, 1, 1, ['y', 'a', 'o', 'w'][i % 4]); }
+  const dx = Math.round(w * 0.32), depth = gl + Math.min(h - gl - 6, (h - gl) * Math.min(1, k * 1.3));
+  for (let kk = 0; kk < 24; kk++) { const hw = Math.round(7 - kk * 0.22); R(dx - hw, gl - kk, 1, 1, 's'); R(dx + hw, gl - kk, 1, 1, 's'); }
+  R(dx, gl - 26, 1, 2, Math.floor(t * 1.6) % 2 ? 'r' : '2');
+  R(dx - 1, gl - 24, 2, depth - gl + 24, 's'); R(dx - 2, depth, 4, 2, 'y'); R(dx - 1, depth + 2, 2, 1, 'w');
+  for (let i = 0; i < 4; i++) R(dx + (Math.random() - 0.5) * 10, depth + Math.random() * 3, 1, 1, 'y');
+  for (let i = 0; i < 70; i++) {
+    const sp = 30 + hash(i, 4) * 50, x = Math.floor(((hash(i, 3) * w * 2 - t * sp) % w + w) % w), y = Math.floor(hash(5, i) * gl);
+    R(x, y, 2 + (i % 3), 1, i % 3 ? 'o' : '4');
+  }
+}
+function sceneFinal(sc, t, k) {
+  const { w, h } = sc.st, R = sc.R, hz = Math.round(h * 0.76);
+  cachedSky(sc, 'final', ['k', 'p', 'r', 'o'], 1.7, hz);
+  discR(R, Math.round(w * 0.72), hz + 3, Math.round(h * 0.3), 'r', hz); discR(R, Math.round(w * 0.72), hz + 3, Math.round(h * 0.2), 'o', hz);
+  ridge(R, w, hz, 8, 33, 'm', h); R(0, hz, w, h - hz, 'k');
+  const sc2 = Math.max(2, Math.round(h / 70)), cx = Math.round(w * 0.36), lift = k > 0.55 ? Math.pow((k - 0.55) * 2.2, 2.2) * h : 0, top = hz - 30 * sc2 - 2 - lift;
+  R(cx - 14 * sc2, hz - 2, 28 * sc2, 2, 'd');
+  drawShipLocal((dx, dy, ww, hh, col) => R(cx + dx * sc2, top + dy * sc2, ww * sc2, hh * sc2, col), 6, t, lift > 0 ? 1 : 0);
+}
+const STORY = [
+  { text: 'Kessra, year 2291. The old sun is swelling, and the surface will not last much longer.', draw: sceneSun },
+  { text: 'The evacuation fleet lifted off last winter. Not everyone made it aboard.', draw: sceneFleet },
+  { text: 'One hull still stands on the launch pad: the Meridian. Its warp core needs minerals nobody has mined in a century.', draw: sceneHull },
+  { text: 'You have a drill rig and a mining permit. Dust storms seal every claim after 25 minutes, so dig fast.', draw: sceneRig },
+  { text: 'Dig deep. Ship the ore. Build the Meridian. Get off this rock.', draw: sceneFinal },
+];
+const titleSc = sceneCanvas($('#titleCv')), introSc = sceneCanvas($('#introCv'));
+let titleOn = false, introOn = false, introIdx = 0, introT0 = 0, newArmed = 0;
+function titleLoop(now) {
+  if (!titleOn) return;
+  requestAnimationFrame(titleLoop);
+  if (titleSc.st.ready) sceneSun(titleSc, now / 1000, 0.5 + 0.5 * Math.sin(now / 4000));
+}
+function showTitle() {
+  GAME_PAUSED = true;
+  const cont = $('#btnContinue');
+  cont.hidden = !hadSave;
+  $('#btnNew').textContent = hadSave ? 'New game' : 'Start';
+  $('#titleSave').textContent = hadSave
+    ? `Claim #${S.prestiges + 1} · record ${fmtDepth(S.best)} · Meridian ${S.launched ? 'launched' : `${S.ship} of ${STAGES.length} stages`}`
+    : 'The last driller at Deepcore Camp';
+  $('#title').hidden = false; titleOn = true;
+  requestAnimationFrame(titleLoop);
+  (hadSave ? cont : $('#btnNew')).focus();
+}
+function hideTitle() { titleOn = false; $('#title').hidden = true; }
+function resumeGame() { hideTitle(); GAME_PAUSED = false; $('#cv').focus(); }
+function newGame() {
+  S = DEFAULT(); migrateClaims(); visDepth = 0; T = null;
+  $('#cmap').hidden = true;
+  try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  $('#toast').hidden = true; closeWin();
+  renderLog(); renderBoons(); showDraft(); yardSig = ''; uiTick(true); save();
+  hadSave = true;
+}
+$('#btnContinue').addEventListener('click', resumeGame);
+$('#btnNew').addEventListener('click', () => {
+  if (hadSave && performance.now() - newArmed > 4000) {
+    newArmed = performance.now(); $('#btnNew').textContent = 'Erase save and restart?';
+    setTimeout(() => { if (titleOn && hadSave) $('#btnNew').textContent = 'New game'; }, 4000);
+    return;
+  }
+  newArmed = 0; newGame(); hideTitle(); playIntro();
+});
+function playIntro() {
+  introOn = true; introIdx = 0; introT0 = performance.now();
+  $('#introDots').innerHTML = STORY.map(() => '<i></i>').join('');
+  $('#intro').hidden = false; $('#introSkip').focus();
+  requestAnimationFrame(introLoop);
+}
+function endIntro() {
+  introOn = false; $('#intro').hidden = true; GAME_PAUSED = false;
+  logEvt('Day one at Deepcore Camp. The Meridian waits on its pad. Tap the rock to start drilling.', 'strata');
+  $('#cv').focus();
+}
+function introLoop(now) {
+  if (!introOn) return;
+  requestAnimationFrame(introLoop);
+  const sc = STORY[introIdx], el = now - introT0, chars = reduceMotion ? sc.text.length : Math.floor(el / 32);
+  const typed = Math.min(sc.text.length, chars), done = typed >= sc.text.length;
+  const line = $('#introLine'); if (line.textContent.length !== typed) line.textContent = sc.text.slice(0, typed);
+  $('#introTap').textContent = introIdx === STORY.length - 1 ? 'Tap to begin' : 'Tap to continue';
+  $('#introTap').style.visibility = done ? 'visible' : 'hidden';
+  document.querySelectorAll('#introDots i').forEach((d, i) => d.classList.toggle('on', i <= introIdx));
+  const dur = sc.text.length * 32 + 3200;
+  if (introSc.st.ready) sc.draw(introSc, now / 1000, Math.min(1, el / dur));
+  if (el > dur + 1500) advanceIntro();
+}
+function advanceIntro() {
+  const el = performance.now() - introT0, sc = STORY[introIdx];
+  if (el < sc.text.length * 32) { introT0 = performance.now() - sc.text.length * 32; return; } // finish typing first
+  if (introIdx >= STORY.length - 1) { endIntro(); return; }
+  introIdx++; introT0 = performance.now(); $('#introLine').textContent = '';
+}
+$('#intro').addEventListener('click', e => { if (e.target.id !== 'introSkip') advanceIntro(); });
+$('#introSkip').addEventListener('click', endIntro);
+document.addEventListener('keydown', e => {
+  if (introOn && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); advanceIntro(); }
+  else if (introOn && e.key === 'Escape') endIntro();
+});
+
+
+/* ---------- boot ---------- */
+let started = false;
+function start(data) {
+  if (started) return; started = true;
+  if (data && data.S && data.S.v === SAVE_VERSION) { const base = DEFAULT(); S = Object.assign(base, data.S, { up: Object.assign(base.up, data.S.up || {}) }); }
+  else if (load()) offlineCatchUp();
+  else {
+    let old = null;
+    try { old = localStorage.getItem('deepcore-rig-v1') || localStorage.getItem('deepcore-rig-v2'); localStorage.removeItem('deepcore-rig-v1'); localStorage.removeItem('deepcore-rig-v2'); } catch (e) {}
+    if (old || (data && data.S)) logEvt('The rig was rebalanced around excavation and the Meridian build. Your old save was retired, so this is a fresh start.', 'strata');
+  }
+  migrateClaims();
+  visDepth = S.depth;
+  S.heat = 0; S.overheat = false;
+  if (S.choosing) setTimeout(() => openClaimMap('seal'), 0);
+  if (S.clicks >= 15) $('#hint').hidden = true;
+  try { const t = localStorage.getItem(SAVE_KEY + '-tab'); if (t && t !== 'rig') document.querySelector(`.tab[data-tab="${t}"]`)?.click(); } catch (e) {}
+  renderLog(); renderBoons(); showDraft();
+  try { const sc = localStorage.getItem(SAVE_KEY + '-screen'); if (sc === 'yard') setScreen('yard'); } catch (e) {}
+  requestAnimationFrame(renderYard);
+  lastLife = S.lifetime;
+  let last = performance.now();
+  setInterval(() => { const now = performance.now(); if (!GAME_PAUSED) tick(Math.min(60, (now - last) / 1000), false); last = now; }, 100);
+  setInterval(() => uiTick(false), 200);
+  setInterval(save, 5000);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+  addEventListener('pagehide', save);
+  uiTick(true);
+  requestAnimationFrame(render);
+  if (data && data.S) GAME_PAUSED = false; else showTitle(); // a live update keeps playing; a fresh load shows the title
+}
+window.claude?.hot?.snapshot?.(() => ({ S }));
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+})();
+
+</script>
+</body>
+</html>
