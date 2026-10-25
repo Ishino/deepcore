@@ -140,7 +140,7 @@ rep(`  const ppm = H / viewSpan, headY = Math.round(H * 0.58), cx = Math.round(M
     `  const ppm = H / viewSpan, headY = Math.round(Math.min(H * 0.58, visDepth * ppm + 30)), cx = Math.round(Math.max(110, W * 0.56));`);
 // shorter labels for the console bar
 rep("const shipLabel = n => n >= 0.5 ? `Ship ${fmt(n)} useful load${n >= 1.5 ? 's' : ''} to the yard` : 'Nothing in the hopper the yard needs';",
-    "const shipLabel = n => n >= 0.5 ? `Ship ${fmt(n)} to yard` : 'Yard needs none';");
+    "const shipLabel = n => n >= 0.5 ? `Ship ${fmt(n)} to yard` : 'Nothing to ship';");
 rep(`const yv = $('#yv'), yx = yv.getContext('2d');`, `const yv = $('#yv'), YPL = pixelLayer(yv, $('#yvText')), yx = YPL.ctx;`);
 rep(`  const r = yv.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1);
   YW = r.width; YH = r.height; yv.width = Math.round(YW * d); yv.height = Math.round(YH * d); yx.setTransform(d, 0, 0, d, 0, 0);`,
