@@ -13,7 +13,7 @@ const PALETTE = ['#1a1c2c','#5d275d','#b13e53','#ef7d57','#ffcd75','#a7f070','#3
   '#2b1e1a','#5a3a2b','#8a5a3c','#c49a6c'];
 const PAL = PALETTE.map(h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]);
 const LUT = new Uint8Array(32768).fill(255);
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v / 16 - 0.47) * 34);
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v / 16 - 0.47) * 10); // light touch: only real gradients dither
 function nearestColor(r, g, b) {
   let best = 0, bd = Infinity;
   for (let k = 0; k < PAL.length; k++) { const p = PAL[k], dr = r - p[0], dg = g - p[1], db = b - p[2], d = dr * dr * 0.3 + dg * dg * 0.59 + db * db * 0.11; if (d < bd) { bd = d; best = k; } }
@@ -67,8 +67,35 @@ function pixelLayer(canvas, textCanvas) {
   };
 }
 
+// Rock is drawn in exact palette colours (base, a darker pebble shade and a lighter one), registered
+// on first use, so flat rock stays solid instead of dithering between two fixed palette entries.
+const PAL_KEYS = new Set(PALETTE);
+const normCtx = document.createElement('canvas').getContext('2d');
+function pxReg(col) {
+  normCtx.fillStyle = '#000000'; normCtx.fillStyle = col;
+  const hex = normCtx.fillStyle;
+  if (hex[0] === '#' && !PAL_KEYS.has(hex)) {
+    PAL_KEYS.add(hex); PAL.push([parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)]); LUT.fill(255);
+  }
+  return hex;
+}
+const mixHex = (hex, to, f) => '#' + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * (1 - f) + to * f).toString(16).padStart(2, '0')).join('');
+const SHADES = {};
+function rockShades(s) {
+  const key = s.color + s.ore;
+  if (!SHADES[key]) { const base = pxReg(s.color); SHADES[key] = { base, dark: pxReg(mixHex(base, 0, 0.3)), light: pxReg(mixHex(base, 255, 0.14)), ore: pxReg(s.ore) }; }
+  return SHADES[key];
+}
+
 /* ---------- canvas ---------- */
 const cv = $('#cv'), PL = pixelLayer(cv, $('#cvText')), ctx = PL.ctx;`);
+// hand-picked pixel-art rock colours for the twelve named formations (generated ones snap to their own shades)
+rep(`const BASE_N = STRATA.length;`, `['#5a3a2b', '#c49a6c', '#9c9178', '#4a5068', '#8c6f73', '#2e3340', '#6c6478', '#3a5248', '#566b3c', '#6e3b46', '#6a3220', '#8a2f1a']
+  .forEach((c, i) => { STRATA[i].color = c; });
+const BASE_N = STRATA.length;`);
+rep(`        ctx.fillStyle = s.ore;`, `        ctx.fillStyle = rockShades(s).ore;`);
+rep(`        ctx.fillStyle = r1 > 0.5 ? 'rgba(0,0,0,.22)' : 'rgba(255,255,255,.07)';`, `        ctx.fillStyle = r1 > 0.5 ? rockShades(s).dark : rockShades(s).light;`);
+rep(`      ctx.fillStyle = s.color; ctx.fillRect(-10, y0, W + 20, y1 - y0);`, `      ctx.fillStyle = rockShades(s).base; ctx.fillRect(-10, y0, W + 20, y1 - y0);`);
 rep(`function resize() {
   const r = cv.getBoundingClientRect();
   DPR = Math.min(2, window.devicePixelRatio || 1);
